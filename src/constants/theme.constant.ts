@@ -1,0 +1,72 @@
+import type { CategorySlug } from '@/@types/product'
+
+/**
+ * Hex mirror of the `@theme` tokens in `index.css`. Inline SVG illustrations need
+ * literal color values, which Tailwind utility classes cannot provide.
+ */
+export const PALETTE = {
+    blush50: '#FFF5F9',
+    blush100: '#FFE7F1',
+    blush200: '#FFD1E4',
+    blush300: '#FFB3D1',
+    blush400: '#FF8FB8',
+    blush500: '#FB6FA5',
+    blush600: '#E75F9B',
+    blush700: '#C44A80',
+    blush800: '#9C3A66',
+    blush900: '#7A2E50',
+    sky50: '#F2F9FF',
+    sky100: '#E0F1FF',
+    sky200: '#C4E4FF',
+    sky300: '#A8D8FF',
+    sky400: '#7CC0FF',
+    sky500: '#57A9F5',
+    sky600: '#3E9BE0',
+    sky700: '#2F7CB8',
+    sky800: '#255F8D',
+    sky900: '#1C4869',
+    lilac200: '#E4D9FF',
+    lilac400: '#C0AEFF',
+    mint200: '#C9F2E0',
+    mint400: '#7FD9B4',
+    butter200: '#FFEFC2',
+    butter400: '#FFD979',
+    cream: '#FFF9FB',
+    ink: '#2E2438',
+    inkSoft: '#6B5F78',
+    line: '#F0E4EC',
+} as const
+
+export type PaletteKey = keyof typeof PALETTE
+
+export interface CategoryTheme {
+    /** Backdrop behind the illustration. */
+    surface: string
+    /** Structural strokes and outlines. */
+    stroke: string
+    /** Secondary decorative fill. */
+    accent: string
+    /** Color of the `printText` drawn on the product. */
+    print: string
+}
+
+export const CATEGORY_THEME: Record<CategorySlug, CategoryTheme> = {
+    mugs: {
+        surface: PALETTE.blush50,
+        stroke: PALETTE.blush600,
+        accent: PALETTE.blush200,
+        print: PALETTE.ink,
+    },
+    tees: {
+        surface: PALETTE.sky50,
+        stroke: PALETTE.sky600,
+        accent: PALETTE.sky200,
+        print: PALETTE.ink,
+    },
+    keychains: {
+        surface: PALETTE.lilac200,
+        stroke: PALETTE.lilac400,
+        accent: PALETTE.butter200,
+        print: PALETTE.ink,
+    },
+} as const

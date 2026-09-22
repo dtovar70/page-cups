@@ -1,0 +1,52 @@
+import { cva, type VariantProps } from 'class-variance-authority'
+
+import { cn } from '@/utils/cn'
+import { formatCurrency } from '@/utils/formatCurrency'
+
+const priceVariants = cva('font-display font-semibold text-ink', {
+    variants: {
+        size: {
+            sm: 'text-base',
+            md: 'text-xl',
+            lg: 'text-3xl',
+        },
+    },
+    defaultVariants: {
+        size: 'md',
+    },
+})
+
+const compareVariants = cva('text-ink-soft line-through', {
+    variants: {
+        size: {
+            sm: 'text-xs',
+            md: 'text-sm',
+            lg: 'text-base',
+        },
+    },
+    defaultVariants: {
+        size: 'md',
+    },
+})
+
+export interface PriceTagProps extends VariantProps<typeof priceVariants> {
+    price: number
+    compareAtPrice?: number
+    className?: string
+}
+
+export function PriceTag({ price, compareAtPrice, size, className }: PriceTagProps) {
+    const hasDiscount = compareAtPrice !== undefined && compareAtPrice > price
+
+    return (
+        <p className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-0.5', className)}>
+            <span className={priceVariants({ size })}>{formatCurrency(price)}</span>
+            {hasDiscount ? (
+                <span className={compareVariants({ size })}>
+                    <span className="sr-only">Antes </span>
+                    {formatCurrency(compareAtPrice)}
+                </span>
+            ) : null}
+        </p>
+    )
+}

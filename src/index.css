@@ -1,0 +1,110 @@
+@import 'tailwindcss';
+
+@theme {
+    --font-display: 'Fredoka', ui-rounded, system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* pink scale */
+    --color-blush-50: #fff5f9;
+    --color-blush-100: #ffe7f1;
+    --color-blush-200: #ffd1e4;
+    --color-blush-300: #ffb3d1;
+    --color-blush-400: #ff8fb8;
+    --color-blush-500: #fb6fa5;
+    --color-blush-600: #e75f9b;
+    --color-blush-700: #c44a80;
+    --color-blush-800: #9c3a66;
+    --color-blush-900: #7a2e50;
+
+    /* blue scale */
+    --color-sky-50: #f2f9ff;
+    --color-sky-100: #e0f1ff;
+    --color-sky-200: #c4e4ff;
+    --color-sky-300: #a8d8ff;
+    --color-sky-400: #7cc0ff;
+    --color-sky-500: #57a9f5;
+    --color-sky-600: #3e9be0;
+    --color-sky-700: #2f7cb8;
+    --color-sky-800: #255f8d;
+    --color-sky-900: #1c4869;
+
+    /* accents */
+    --color-lilac-200: #e4d9ff;
+    --color-lilac-400: #c0aeff;
+    --color-mint-200: #c9f2e0;
+    --color-mint-400: #7fd9b4;
+    --color-butter-200: #ffefc2;
+    --color-butter-400: #ffd979;
+
+    /* neutrals */
+    --color-cream: #fff9fb;
+    --color-ink: #2e2438;
+    --color-ink-soft: #6b5f78;
+    --color-line: #f0e4ec;
+
+    --radius-xl2: 1.5rem;
+    --radius-blob: 2.5rem;
+
+    --shadow-soft: 0 10px 30px -12px rgb(231 95 155 / 0.25);
+    --shadow-lift: 0 18px 40px -16px rgb(46 36 56 / 0.25);
+
+    --animate-marquee: marquee 32s linear infinite;
+
+    @keyframes marquee {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+    }
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-cream font-sans text-ink antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-display font-semibold tracking-tight;
+    }
+
+    :focus-visible {
+        @apply ring-2 ring-blush-400 ring-offset-2 ring-offset-cream outline-none;
+    }
+
+    /* Search inputs ship their own clear glyph; we render an on-brand one instead. */
+    input[type='search']::-webkit-search-cancel-button,
+    input[type='search']::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    ::selection {
+        @apply bg-blush-200 text-ink;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
