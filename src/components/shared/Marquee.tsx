@@ -2,8 +2,18 @@ import { Sparkles } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 
-/** Two identical tracks make the -50% keyframe loop without a visible seam. */
+/**
+ * Two identical tracks sit side by side and slide by exactly one track width, so the
+ * second one lands where the first started and the loop has no seam.
+ */
 const TRACKS = [0, 1]
+
+/**
+ * Each track repeats the announcements so its natural width already overflows a wide
+ * desktop. Without this the track falls back to `min-w-full`, which keeps the loop
+ * seamless but spreads the items thin.
+ */
+const REPEATS_PER_TRACK = [0, 1, 2]
 
 export interface MarqueeProps {
     items: readonly string[]
@@ -12,28 +22,37 @@ export interface MarqueeProps {
 
 export function Marquee({ items, className }: MarqueeProps) {
     return (
-        <div className={cn('overflow-hidden bg-ink py-2 text-xs font-semibold text-cream', className)}>
+        <div
+            className={cn(
+                'flex overflow-hidden bg-ink py-2 text-xs font-semibold text-cream',
+                className,
+            )}
+        >
             <ul className="sr-only">
                 {items.map((item) => (
                     <li key={item}>{item}</li>
                 ))}
             </ul>
 
-            <div
-                aria-hidden="true"
-                className="flex w-max animate-marquee items-center whitespace-nowrap motion-reduce:animate-none"
-            >
-                {TRACKS.map((track) => (
-                    <span key={track} className="flex shrink-0 items-center">
-                        {items.map((item) => (
-                            <span key={item} className="flex items-center gap-2 px-6">
+            {TRACKS.map((track) => (
+                <div
+                    key={track}
+                    aria-hidden="true"
+                    className="flex min-w-full shrink-0 animate-marquee items-center justify-around whitespace-nowrap motion-reduce:animate-none"
+                >
+                    {REPEATS_PER_TRACK.map((repeat) =>
+                        items.map((item) => (
+                            <span
+                                key={`${repeat}-${item}`}
+                                className="flex items-center gap-2 px-6"
+                            >
                                 <Sparkles aria-hidden="true" className="size-3.5 text-blush-300" />
                                 {item}
                             </span>
-                        ))}
-                    </span>
-                ))}
-            </div>
+                        )),
+                    )}
+                </div>
+            ))}
         </div>
     )
 }

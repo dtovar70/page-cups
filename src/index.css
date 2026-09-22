@@ -48,14 +48,56 @@
     --shadow-soft: 0 10px 30px -12px rgb(231 95 155 / 0.25);
     --shadow-lift: 0 18px 40px -16px rgb(46 36 56 / 0.25);
 
-    --animate-marquee: marquee 32s linear infinite;
+    --animate-marquee: marquee 45s linear infinite;
 
+    /*
+     * Loader: each paw lands, holds, then fades while the next one lands. The cycle is
+     * longer than the trail so the trail clears before it starts over, which is what makes
+     * it read as an animal walking past rather than a row of blinking icons.
+     */
+    --animate-paw-step: paw-step 1.9s ease-in-out infinite;
+    --animate-breathe: breathe 2.6s ease-in-out infinite;
+
+    @keyframes paw-step {
+        0%,
+        100% {
+            opacity: 0;
+            transform: translateY(var(--paw-lift)) rotate(var(--paw-tilt)) scale(0.55);
+        }
+        12% {
+            opacity: 1;
+            transform: translateY(var(--paw-lift)) rotate(var(--paw-tilt)) scale(1);
+        }
+        45% {
+            opacity: 1;
+            transform: translateY(var(--paw-lift)) rotate(var(--paw-tilt)) scale(1);
+        }
+        70% {
+            opacity: 0;
+            transform: translateY(var(--paw-lift)) rotate(var(--paw-tilt)) scale(0.9);
+        }
+    }
+
+    @keyframes breathe {
+        0%,
+        100% {
+            transform: scale(1) rotate(0deg);
+        }
+        50% {
+            transform: scale(1.06) rotate(-3deg);
+        }
+    }
+
+    /*
+     * Each track slides by its own full width, not half the wrapper's: the next identical
+     * track is already in place behind it, so the restart is invisible at any viewport.
+     */
     @keyframes marquee {
         from {
             transform: translateX(0);
         }
         to {
-            transform: translateX(-50%);
+            transform: translateX(-100%);
         }
     }
 }

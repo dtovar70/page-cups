@@ -1,14 +1,55 @@
-import { Spinner } from '@/components/ui/Spinner'
+import { useEffect, useState } from 'react'
+
+import { PawTrailLoader } from '@/components/shared/PawTrailLoader'
+import { useGlobalLoadingActions } from '@/store/loadingStore'
+import { cn } from '@/utils/cn'
+
+/**
+ * Chunks that resolve faster than this never paint the loader, so quick navigations stay
+ * instant instead of flashing a full-screen overlay.
+ */
+const APPEAR_DELAY_MS = 180
 
 export interface RouteFallbackProps {
     message?: string
 }
 
+/**
+ * The app-wide loader. It claims the screen on boot and on every route swap, and it
+ * registers itself as soon as it mounts — before it is even visible — so spot loaders
+ * stay hidden for the whole transition, not just while the overlay is painted.
+ */
 export function RouteFallback({ message = 'Preparando todo…' }: RouteFallbackProps) {
+    const { beginGlobal, endGlobal } = useGlobalLoadingActions()
+    const [isVisible, setIsVisible] = useState(false)
+
+    useEffect(() => {
+        beginGlobal()
+        const timeout = window.setTimeout(() => setIsVisible(true), APPEAR_DELAY_MS)
+
+        return () => {
+            window.clearTimeout(timeout)
+            endGlobal()
+        }
+    }, [beginGlobal, endGlobal])
+
     return (
-        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
-            <Spinner size="lg" className="text-blush-400" label={message} />
-            <p className="font-display text-lg text-ink-soft">{message}</p>
+        <div
+            className={cn(
+                'fixed inset-0 z-60 flex items-center justify-center bg-cream px-4 transition-opacity duration-200 motion-reduce:transition-none',
+                isVisible ? 'opacity-100' : 'pointer-events-none opacity-0',
+            )}
+        >
+            <span
+                aria-hidden="true"
+                className="absolute top-1/4 -left-24 size-80 rounded-full bg-sky-200 opacity-50 blur-3xl"
+            />
+            <span
+                aria-hidden="true"
+                className="absolute -right-24 bottom-1/4 size-80 rounded-full bg-blush-200 opacity-50 blur-3xl"
+            />
+
+            <PawTrailLoader message={message} className="relative" />
         </div>
     )
 }

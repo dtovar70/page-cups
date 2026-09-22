@@ -4,7 +4,8 @@ import type { RouteObject } from 'react-router'
 import { StoreLayout } from '@/components/layouts/StoreLayout'
 import { RouteError } from '@/components/route/RouteError'
 import { RouteFallback } from '@/components/route/RouteFallback'
-import { ROUTES } from '@/constants/route.constant'
+import { DEV_ROUTES, ROUTES } from '@/constants/route.constant'
+import { LoaderPreviewView } from '@/views/others/LoaderPreviewView'
 import {
     AboutView,
     CartView,
@@ -21,6 +22,14 @@ function withSuspense(view: ReactElement): ReactElement {
     return <Suspense fallback={<RouteFallback />}>{view}</Suspense>
 }
 
+/**
+ * `import.meta.env.DEV` is replaced by a literal at build time, so this whole branch — and
+ * the sandbox view it imports — is dead code the bundler strips from production.
+ */
+const devRoutes: RouteObject[] = import.meta.env.DEV
+    ? [{ path: DEV_ROUTES.loaderPreview, element: <LoaderPreviewView /> }]
+    : []
+
 export const routes: RouteObject[] = [
     {
         path: ROUTES.home,
@@ -35,6 +44,7 @@ export const routes: RouteObject[] = [
             { path: ROUTES.checkout, element: withSuspense(<CheckoutView />) },
             { path: ROUTES.about, element: withSuspense(<AboutView />) },
             { path: ROUTES.contact, element: withSuspense(<ContactView />) },
+            ...devRoutes,
             { path: ROUTES.notFound, element: withSuspense(<NotFoundView />) },
         ],
     },
