@@ -2,7 +2,8 @@ import { Clock, Mail, MapPin, Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { Card } from '@/components/ui'
-import { appConfig } from '@/configs/app.config'
+import { formatVePhone, phoneHref } from '@/utils/content'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 interface ContactChannel {
     id: string
@@ -12,39 +13,40 @@ interface ContactChannel {
     href?: string
 }
 
-const CHANNELS: ContactChannel[] = [
-    {
-        id: 'email',
-        icon: <Mail aria-hidden="true" className="size-5" />,
-        label: 'Correo',
-        value: appConfig.contact.email,
-        href: `mailto:${appConfig.contact.email}`,
-    },
-    {
-        id: 'phone',
-        icon: <Phone aria-hidden="true" className="size-5" />,
-        label: 'Teléfono / WhatsApp',
-        value: appConfig.contact.phone,
-        href: `tel:${appConfig.contact.phone.replace(/\s/g, '')}`,
-    },
-    {
-        id: 'address',
-        icon: <MapPin aria-hidden="true" className="size-5" />,
-        label: 'Taller',
-        value: `${appConfig.contact.address}, ${appConfig.contact.city}`,
-    },
-    {
-        id: 'schedule',
-        icon: <Clock aria-hidden="true" className="size-5" />,
-        label: 'Horario',
-        value: appConfig.contact.schedule,
-    },
-]
-
 export function ContactInfo() {
+    const { contact } = useSiteContent()
+    const channels: ContactChannel[] = [
+        {
+            id: 'email',
+            icon: <Mail aria-hidden="true" className="size-5" />,
+            label: 'Correo',
+            value: contact.email,
+            href: `mailto:${contact.email}`,
+        },
+        {
+            id: 'phone',
+            icon: <Phone aria-hidden="true" className="size-5" />,
+            label: 'Teléfono / WhatsApp',
+            value: formatVePhone(contact.phone),
+            href: phoneHref(contact.phone),
+        },
+        {
+            id: 'address',
+            icon: <MapPin aria-hidden="true" className="size-5" />,
+            label: 'Taller',
+            value: contact.city,
+        },
+        {
+            id: 'schedule',
+            icon: <Clock aria-hidden="true" className="size-5" />,
+            label: 'Horario',
+            value: contact.schedule,
+        },
+    ]
+
     return (
         <ul className="grid gap-4">
-            {CHANNELS.map((channel) => (
+            {channels.map((channel) => (
                 <li key={channel.id} className="h-full">
                     <Card tone="cream" className="flex h-full items-start gap-3">
                         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700">

@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { CartItem } from '@/@types/cart'
-import { ProductIllustration } from '@/components/shared/ProductIllustration'
+import { ProductMedia } from '@/components/shared/ProductMedia'
 import { Button, QuantityStepper } from '@/components/ui'
 import { productPath } from '@/constants/route.constant'
 import { MAX_LINE_QUANTITY, useCartActions } from '@/store/cartStore'
@@ -18,10 +18,12 @@ export function CartLine({ item }: CartLineProps) {
     return (
         <li className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center">
             <div className="flex size-24 shrink-0 items-center justify-center rounded-3xl bg-blush-50 p-2">
-                <ProductIllustration
+                <ProductMedia
                     category={item.category}
                     color={item.colorHex}
                     printText={item.printText}
+                    image={item.imageUrl ? { url: item.imageUrl } : undefined}
+                    fallbackAlt={item.name}
                     size="lg"
                 />
             </div>

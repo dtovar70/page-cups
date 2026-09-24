@@ -8,7 +8,10 @@ import { useCartDrawer } from '@/store/uiStore'
 
 const CONFIRMATION_MS = 1600
 
-export interface AddToCartButtonProps extends Pick<ButtonProps, 'size' | 'variant' | 'fullWidth' | 'className'> {
+export interface AddToCartButtonProps extends Pick<
+    ButtonProps,
+    'size' | 'variant' | 'fullWidth' | 'className'
+> {
     product: Product
     variantId: string
     quantity?: number

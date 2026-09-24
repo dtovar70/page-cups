@@ -1,0 +1,392 @@
+import { z } from 'zod'
+
+import {
+    CONTENT_PLACEHOLDERS,
+    type AboutValueIcon,
+    type ContentPlaceholder,
+    type ContentSection,
+    type SiteContent,
+} from '@/@types/content'
+import { findUnknownPlaceholder, hasBrokenHighlights } from '@/utils/content'
+
+/**
+ * Admin forms for the site content. They mirror the API DTOs (backend-cups/src/content/dto):
+ * same lengths, list sizes, formats, placeholders and highlight rules, so most mistakes never
+ * reach the server. Lists of plain texts are held as `{ value }` objects, which is the shape
+ * `useFieldArray` needs.
+ */
+
+export const CONTENT_LIMITS = {
+    label: 40,
+    title: 90,
+    itemTitle: 60,
+    question: 120,
+    text: 300,
+    paragraph: 1000,
+    brandName: 60,
+    tagline: 80,
+    titleSuffix: 70,
+    metaDescription: 300,
+    announcement: 80,
+    searchPlaceholder: 60,
+    statValue: 12,
+    email: 120,
+    city: 80,
+    schedule: 120,
+    bankName: 60,
+    holderName: 80,
+    instructions: 500,
+} as const
+
+export const CONTENT_LIST_SIZES = {
+    announcements: { min: 1, max: 8 },
+    heroFeatures: { min: 0, max: 4 },
+    steps: { min: 1, max: 6 },
+    paragraphs: { min: 1, max: 6 },
+    values: { min: 1, max: 8 },
+    stats: { min: 1, max: 8 },
+    faq: { min: 1, max: 12 },
+} as const
+
+export const CONTENT_MAX_MONEY = 100_000
+
+export const VE_PHONE_PATTERN = /^0\d{3}-\d{7}$/
+export const VE_MOBILE_PATTERN = /^04\d{2}-\d{7}$/
+export const ID_NUMBER_PATTERN = /^[VEJPG]-\d{6,9}$/
+export const BANK_CODE_PATTERN = /^\d{4}$/
+export const SOCIAL_HANDLE_PATTERN = /^(?:[A-Za-z0-9._]{1,30})?$/
+
+export const ABOUT_VALUE_ICONS = [
+    'palette',
+    'heart-handshake',
+    'timer',
+    'leaf',
+    'sparkles',
+    'star',
+    'truck',
+    'shield-check',
+] as const satisfies readonly AboutValueIcon[]
+
+interface TextRules {
+    optional?: boolean
+    placeholders?: readonly ContentPlaceholder[]
+    highlights?: boolean
+    /** Message when a required field is left empty. */
+    required?: string
+}
+
+export function placeholderList(names: readonly ContentPlaceholder[]): string {
+    return names.map((name) => CONTENT_PLACEHOLDERS[name]).join(', ')
+}
+
+function text(max: number, rules: TextRules = {}) {
+    const base = z.string().trim().max(max, `Máximo ${max} caracteres`)
+    const checked = rules.optional ? base : base.min(1, rules.required ?? 'Completa este campo')
+    return checked.superRefine((value, context) => {
+        const unknown = findUnknownPlaceholder(value, rules.placeholders)
+        if (unknown) {
+            context.addIssue({
+                code: 'custom',
+                message: rules.placeholders?.length
+                    ? `${unknown} no existe. Puedes usar ${placeholderList(rules.placeholders)}.`
+                    : `Este campo no admite marcadores como ${unknown}.`,
+            })
+            return
+        }
+        if (rules.highlights && hasBrokenHighlights(value)) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Falta cerrar un destacado o hay uno vacío. Márcalo así: *palabras*.',
+            })
+        }
+    })
+}
+
+interface ListSize {
+    min: number
+    max: number
+}
+
+/** `one` names a single item with its article: "un anuncio", "una pregunta". */
+function list<T extends z.ZodType>(item: T, size: ListSize, one: string) {
+    return z
+        .array(item)
+        .min(size.min, `Agrega al menos ${size.min === 1 ? one : size.min}`)
+        .max(size.max, `Máximo ${size.max}`)
+}
+
+/** A list of plain texts; `the` names an item for the empty message: "el anuncio". */
+function textList(
+    max: number,
+    size: ListSize,
+    names: { one: string; the: string },
+    rules: TextRules = {},
+) {
+    const item = text(max, { required: `Escribe ${names.the} o elimínalo`, ...rules })
+    return list(z.object({ value: item }), size, names.one)
+}
+
+/** At most two decimals, checked on the text form to dodge floating-point noise. */
+function hasTwoDecimalsAtMost(value: number): boolean {
+    return /^\d+(\.\d{1,2})?$/.test(String(value))
+}
+
+function money(requiredMessage: string) {
+    return z
+        .number({ error: requiredMessage })
+        .min(0, 'No puede ser negativo')
+        .max(CONTENT_MAX_MONEY, 'El monto es demasiado alto')
+        .refine(hasTwoDecimalsAtMost, 'Usa como máximo dos decimales')
+}
+
+function pattern(regex: RegExp, message: string, max: number) {
+    return z.string().trim().max(max, `Máximo ${max} caracteres`).regex(regex, message)
+}
+
+/** Handles are stored without "@"; typing it is harmless. */
+const handle = z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/^@+/, ''))
+    .pipe(
+        z
+            .string()
+            .regex(
+                SOCIAL_HANDLE_PATTERN,
+                'Solo letras, números, puntos y guiones bajos, hasta 30 caracteres',
+            ),
+    )
+
+const L = CONTENT_LIMITS
+const PHONE_MESSAGE = 'Usa el formato 0412-5550134'
+
+type TextItem = { value: string }
+const toItems = (values: string[]): TextItem[] => values.map((value) => ({ value }))
+const fromItems = (items: TextItem[]): string[] => items.map((item) => item.value)
+
+/* ---------------------------------------------------------------- General */
+
+export const generalSchema = z.object({
+    brandName: text(L.brandName),
+    tagline: text(L.tagline),
+    description: text(L.text),
+    titleSuffix: text(L.titleSuffix, { optional: true }),
+    metaDescription: text(L.metaDescription, { placeholders: ['envioGratis'] }),
+    searchPlaceholder: text(L.searchPlaceholder),
+})
+export type GeneralFormValues = z.infer<typeof generalSchema>
+
+/* ---------------------------------------------------------- Announcements */
+
+export const ANNOUNCEMENT_PLACEHOLDERS = ['envioGratis', 'tarifaEnvio'] as const
+
+export const announcementsSchema = z.object({
+    messages: textList(
+        L.announcement,
+        CONTENT_LIST_SIZES.announcements,
+        { one: 'un anuncio', the: 'el anuncio' },
+        {
+            placeholders: ANNOUNCEMENT_PLACEHOLDERS,
+        },
+    ),
+})
+export type AnnouncementsFormValues = z.infer<typeof announcementsSchema>
+
+/* ------------------------------------------------------------------- Home */
+
+const title = () => text(L.title, { highlights: true })
+
+export const homeSchema = z.object({
+    heroBadge: text(L.label),
+    heroTitle: title(),
+    heroSubtitle: text(L.text),
+    heroPrimaryCta: text(L.label),
+    heroSecondaryCta: text(L.label),
+    heroFeatures: textList(L.label, CONTENT_LIST_SIZES.heroFeatures, {
+        one: 'una ventaja',
+        the: 'la ventaja',
+    }),
+    categoriesEyebrow: text(L.label),
+    categoriesTitle: title(),
+    categoriesDescription: text(L.text, { placeholders: ['categorias'] }),
+    featuredEyebrow: text(L.label),
+    featuredTitle: title(),
+    featuredDescription: text(L.text),
+    featuredCta: text(L.label),
+    stepsEyebrow: text(L.label),
+    stepsTitle: title(),
+    stepsDescription: text(L.text, { optional: true }),
+    steps: list(
+        z.object({ title: text(L.itemTitle), description: text(L.text) }),
+        CONTENT_LIST_SIZES.steps,
+        'un paso',
+    ),
+    testimonialsEyebrow: text(L.label),
+    testimonialsTitle: title(),
+    ctaBadge: text(L.label),
+    ctaTitle: title(),
+    ctaDescription: text(L.text),
+    ctaPrimary: text(L.label),
+    ctaSecondary: text(L.label),
+    newsletterTitle: text(L.title),
+    newsletterDescription: text(L.text),
+})
+export type HomeFormValues = z.infer<typeof homeSchema>
+
+/* ------------------------------------------------------------------ About */
+
+export const ABOUT_PLACEHOLDERS = ['marca', 'ciudad'] as const
+
+export const aboutSchema = z.object({
+    badge: text(L.label),
+    title: title(),
+    paragraphs: textList(
+        L.paragraph,
+        CONTENT_LIST_SIZES.paragraphs,
+        { one: 'un párrafo', the: 'el párrafo' },
+        {
+            placeholders: ABOUT_PLACEHOLDERS,
+        },
+    ),
+    ctaLabel: text(L.label),
+    imageBadge: text(L.label),
+    valuesEyebrow: text(L.label),
+    valuesTitle: title(),
+    valuesDescription: text(L.text, { optional: true }),
+    values: list(
+        z.object({
+            icon: z.enum(ABOUT_VALUE_ICONS, { error: 'Elige un ícono' }),
+            title: text(L.itemTitle),
+            description: text(L.text),
+        }),
+        CONTENT_LIST_SIZES.values,
+        'un valor',
+    ),
+    statsEyebrow: text(L.label),
+    statsTitle: title(),
+    stats: list(
+        z.object({ value: text(L.statValue), label: text(L.label) }),
+        CONTENT_LIST_SIZES.stats,
+        'una cifra',
+    ),
+})
+export type AboutFormValues = z.infer<typeof aboutSchema>
+
+/* ---------------------------------------------------------------- Contact */
+
+export const contactSchema = z.object({
+    email: z
+        .string()
+        .trim()
+        .max(L.email, `Máximo ${L.email} caracteres`)
+        .pipe(z.email('Escribe un correo válido, por ejemplo hola@correo.com')),
+    phone: pattern(VE_PHONE_PATTERN, PHONE_MESSAGE, 12),
+    whatsapp: pattern(VE_MOBILE_PATTERN, 'Usa un celular con el formato 0412-5550134', 12),
+    city: text(L.city),
+    schedule: text(L.schedule),
+    instagram: handle,
+    tiktok: handle,
+})
+export type ContactFormValues = z.input<typeof contactSchema>
+
+/* ----------------------------------------------------------- Contact page */
+
+export const FAQ_PLACEHOLDERS = ['envioGratis', 'tarifaEnvio', 'produccion'] as const
+
+export const contactPageSchema = z.object({
+    badge: text(L.label),
+    title: title(),
+    intro: text(L.text),
+    faqEyebrow: text(L.label),
+    faqTitle: title(),
+    faq: list(
+        z.object({
+            question: text(L.question, { placeholders: FAQ_PLACEHOLDERS }),
+            answer: text(L.paragraph, { placeholders: FAQ_PLACEHOLDERS }),
+        }),
+        CONTENT_LIST_SIZES.faq,
+        'una pregunta',
+    ),
+})
+export type ContactPageFormValues = z.infer<typeof contactPageSchema>
+
+/* --------------------------------------------------------------- Shipping */
+
+export const shippingSchema = z.object({
+    freeThreshold: money('Escribe el monto para envío gratis'),
+    flatRate: money('Escribe la tarifa de envío'),
+    freeShippingCopy: text(L.announcement, { placeholders: ['envioGratis'] }),
+    productionCopy: text(L.announcement),
+})
+export type ShippingFormValues = z.input<typeof shippingSchema>
+
+/* ---------------------------------------------------------------- Payment */
+
+export const paymentSchema = z.object({
+    bankCode: pattern(BANK_CODE_PATTERN, 'Elige el banco', 4),
+    bankName: text(L.bankName, { required: 'Elige el banco' }),
+    phone: pattern(VE_MOBILE_PATTERN, 'Usa un celular con el formato 0412-5550134', 12),
+    idNumber: z
+        .string()
+        .trim()
+        .toUpperCase()
+        .regex(ID_NUMBER_PATTERN, 'Usa el formato V-12345678 o J-123456789'),
+    holderName: text(L.holderName, { required: 'Escribe el nombre del titular' }),
+    instructions: text(L.instructions, { optional: true }),
+})
+export type PaymentFormValues = z.infer<typeof paymentSchema>
+
+/* ------------------------------------------------------------- Converters */
+
+/** How one section maps between the stored value and its form. */
+export interface SectionFormConfig<K extends ContentSection, F> {
+    section: K
+    schema: z.ZodType
+    toForm: (value: SiteContent[K]) => F
+    toValue: (form: F) => SiteContent[K]
+}
+
+/** Sections whose form holds the stored value as-is. */
+function sameShape<K extends ContentSection, F>(
+    section: K,
+    schema: z.ZodType,
+): SectionFormConfig<K, F> {
+    return {
+        section,
+        schema,
+        toForm: (value) => value as unknown as F,
+        toValue: (form) => form as unknown as SiteContent[K],
+    }
+}
+
+const announcementsForm: SectionFormConfig<'announcements', AnnouncementsFormValues> = {
+    section: 'announcements',
+    schema: announcementsSchema,
+    toForm: (value) => ({ messages: toItems(value.messages) }),
+    toValue: (form) => ({ messages: fromItems(form.messages) }),
+}
+
+const homeForm: SectionFormConfig<'home', HomeFormValues> = {
+    section: 'home',
+    schema: homeSchema,
+    toForm: (value) => ({ ...value, heroFeatures: toItems(value.heroFeatures) }),
+    toValue: (form) => ({ ...form, heroFeatures: fromItems(form.heroFeatures) }),
+}
+
+const aboutForm: SectionFormConfig<'about', AboutFormValues> = {
+    section: 'about',
+    schema: aboutSchema,
+    toForm: (value) => ({ ...value, paragraphs: toItems(value.paragraphs) }),
+    toValue: (form) => ({ ...form, paragraphs: fromItems(form.paragraphs) }),
+}
+
+export const SECTION_FORMS = {
+    general: sameShape<'general', GeneralFormValues>('general', generalSchema),
+    announcements: announcementsForm,
+    home: homeForm,
+    about: aboutForm,
+    contact: sameShape<'contact', ContactFormValues>('contact', contactSchema),
+    contactPage: sameShape<'contactPage', ContactPageFormValues>('contactPage', contactPageSchema),
+    shipping: sameShape<'shipping', ShippingFormValues>('shipping', shippingSchema),
+    payment: sameShape<'payment', PaymentFormValues>('payment', paymentSchema),
+} as const

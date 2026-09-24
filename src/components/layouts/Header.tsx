@@ -10,9 +10,10 @@ import { CONTAINER } from '@/constants/layout.constant'
 import { useCartCount } from '@/store/cartStore'
 import { useCartDrawer, useMobileMenu } from '@/store/uiStore'
 import { cn } from '@/utils/cn'
+import { useNavLinks } from '@/utils/hooks/useNavLinks'
 
 const navLinkVariants = cva(
-    'rounded-full px-3 py-2 text-sm font-semibold transition duration-200',
+    'rounded-full px-3 py-2 text-sm font-semibold whitespace-nowrap transition duration-200',
     {
         variants: {
             isActive: {
@@ -28,6 +29,7 @@ export function Header() {
     const cartCount = useCartCount()
     const cartDrawer = useCartDrawer()
     const mobileMenu = useMobileMenu()
+    const navLinks = useNavLinks(appConfig.categoryLinkLimits.header)
 
     return (
         <header className="sticky top-0 z-40 border-b border-line bg-cream/80 backdrop-blur">
@@ -38,7 +40,7 @@ export function Header() {
                     aria-label="Navegación principal"
                     className="hidden flex-1 items-center justify-center gap-0.5 lg:flex"
                 >
-                    {appConfig.navLinks.map((link) => (
+                    {navLinks.map((link) => (
                         <NavLink
                             key={link.to}
                             to={link.to}

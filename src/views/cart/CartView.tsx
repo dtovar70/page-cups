@@ -4,18 +4,20 @@ import { ClearCartButton } from '@/components/shared/ClearCartButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { FreeShippingProgress } from '@/components/shared/FreeShippingProgress'
 import { ButtonLink, Card } from '@/components/ui'
-import { appConfig, FREE_SHIPPING_THRESHOLD } from '@/configs/app.config'
 import { CONTAINER } from '@/constants/layout.constant'
 import { ROUTES } from '@/constants/route.constant'
 import { useCartItems, useCartSubtotal } from '@/store/cartStore'
 import { cn } from '@/utils/cn'
+import { shippingCost } from '@/utils/content'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 import { CartLine } from '@/views/cart/components/CartLine'
 
 export function CartView() {
     const items = useCartItems()
     const subtotal = useCartSubtotal()
-    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : appConfig.shipping.flatRate
+    const content = useSiteContent()
+    const shipping = shippingCost(subtotal, content.shipping)
     const total = subtotal + shipping
 
     return (
@@ -32,7 +34,7 @@ export function CartView() {
                     action={<ButtonLink to={ROUTES.catalog}>Explorar catálogo</ButtonLink>}
                 />
             ) : (
-                <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
                     <div className="space-y-3">
                         {items.length > 1 ? (
                             <div className="flex items-center justify-between gap-3 px-1">

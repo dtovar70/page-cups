@@ -14,6 +14,8 @@ export interface CartItem {
     variantLabel: string
     colorHex: string
     printText: string
+    /** First product photo at the time it was added; absent for illustrated products. */
+    imageUrl?: string
     unitPrice: number
     quantity: number
 }

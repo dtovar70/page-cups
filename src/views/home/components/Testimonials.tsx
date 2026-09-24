@@ -5,21 +5,22 @@ import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button, Card, Rating, Skeleton } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
 import { cn } from '@/utils/cn'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 import { useTestimonials } from '@/views/home/hooks/useTestimonials'
 
 const VISIBLE_TESTIMONIALS = 3
 
 export function Testimonials() {
     const { data: testimonials, isPending, isError, refetch } = useTestimonials()
+    const { home } = useSiteContent()
 
     return (
         <section aria-labelledby="testimonials-heading" className="py-16 lg:py-24">
             <div className={cn(CONTAINER, 'space-y-10')}>
                 <SectionHeading
                     headingId="testimonials-heading"
-                    eyebrow="Clientes felices"
-                    title="Lo que dicen de nosotros"
-                    highlight="dicen"
+                    eyebrow={home.testimonialsEyebrow}
+                    title={home.testimonialsTitle}
                     align="center"
                 />
 

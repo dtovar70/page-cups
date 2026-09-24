@@ -1,5 +1,5 @@
 import type { CartItem } from '@/@types/cart'
-import { ProductIllustration } from '@/components/shared/ProductIllustration'
+import { ProductMedia } from '@/components/shared/ProductMedia'
 import { Card } from '@/components/ui'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -19,10 +19,12 @@ export function OrderSummary({ items, subtotal, shipping, total }: OrderSummaryP
                 {items.map((item) => (
                     <li key={item.lineId} className="flex items-center gap-3">
                         <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5">
-                            <ProductIllustration
+                            <ProductMedia
                                 category={item.category}
                                 color={item.colorHex}
                                 printText={item.printText}
+                                image={item.imageUrl ? { url: item.imageUrl } : undefined}
+                                fallbackAlt={item.name}
                                 size="sm"
                             />
                         </div>
@@ -32,7 +34,7 @@ export function OrderSummary({ items, subtotal, shipping, total }: OrderSummaryP
                                 {item.variantLabel} · {item.quantity} u.
                             </p>
                         </div>
-                        <span className="text-sm font-semibold text-ink">
+                        <span className="shrink-0 text-sm font-semibold text-ink">
                             {formatCurrency(item.unitPrice * item.quantity)}
                         </span>
                     </li>

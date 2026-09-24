@@ -1,72 +1,48 @@
-import { categoryPath, ROUTES } from '@/constants/route.constant'
+import { ROUTES } from '@/constants/route.constant'
 
 export interface NavLink {
     label: string
     to: string
 }
 
-export interface SocialLink {
-    label: string
-    handle: string
-    href: string
-}
+/**
+ * Measured at 1024px (the narrowest width with the desktop nav): the three original
+ * categories leave room for one short extra name only, so a longer fourth would wrap or
+ * collide with the cart button.
+ */
+const HEADER_CATEGORY_LIMIT = 3
 
-export const FREE_SHIPPING_THRESHOLD = 35
-
+/**
+ * App configuration that is not editable content. The brand name, texts, contact data,
+ * socials and shipping values live in the site content (`useSiteContent`), edited from
+ * /admin/contenido.
+ */
 export const appConfig = {
-    brand: 'Manada Russo Creativa',
-    /** The wordmark is set on two lines so the long name fits the header lockup. */
-    brandLines: ['Manada Russo', 'Creativa'] as const,
     logo: {
         src: '/img/logo-mark.webp',
         srcSet: '/img/logo-mark.webp 256w, /img/logo-mark@2x.webp 512w',
-        alt: 'Manada Russo Creativa: perro de la manada rodeado de acuarelas e íconos creativos',
     },
-    tagline: 'Sublimación hecha con amor',
-    description:
-        'Tazas, franelas y llaveros personalizados con sublimación. Tú mandas el diseño, nosotros lo hacemos realidad.',
-    navLinks: [
-        { label: 'Inicio', to: ROUTES.home },
-        { label: 'Catálogo', to: ROUTES.catalog },
-        { label: 'Tazas', to: categoryPath('mugs') },
-        { label: 'Franelas', to: categoryPath('tees') },
-        { label: 'Llaveros', to: categoryPath('keychains') },
-        { label: 'Nosotros', to: ROUTES.about },
-        { label: 'Contacto', to: ROUTES.contact },
-    ] satisfies NavLink[],
-    socials: [
-        {
-            label: 'Instagram',
-            handle: '@manadarussocreativa',
-            href: 'https://instagram.com/manadarussocreativa',
-        },
-        {
-            label: 'TikTok',
-            handle: '@manadarussocreativa',
-            href: 'https://tiktok.com/@manadarussocreativa',
-        },
-        {
-            label: 'WhatsApp',
-            handle: '+58 412 555 0134',
-            href: 'https://wa.me/584125550134',
-        },
-    ] satisfies SocialLink[],
-    contact: {
-        email: 'hola@manadarusso.com',
-        phone: '+58 412 555 0134',
-        city: 'Valencia, Carabobo',
-        address: 'Av. Bolívar Norte, Torre Kalu, piso 3',
-        schedule: 'Lunes a viernes, 9:00 a.m. – 6:00 p.m.',
+    /**
+     * Main navigation. The categories come from the API and are slotted in between these two
+     * groups (see `useNavLinks`), so a category created in the admin shows up on its own.
+     */
+    navLinks: {
+        before: [
+            { label: 'Inicio', to: ROUTES.home },
+            { label: 'Catálogo', to: ROUTES.catalog },
+        ] satisfies NavLink[],
+        after: [
+            { label: 'Nosotros', to: ROUTES.about },
+            { label: 'Contacto', to: ROUTES.contact },
+        ] satisfies NavLink[],
     },
-    shipping: {
-        freeThreshold: FREE_SHIPPING_THRESHOLD,
-        flatRate: 4,
-        freeShippingCopy: `Envío gratis desde $${FREE_SHIPPING_THRESHOLD}`,
-        productionCopy: 'Producción en 3 a 5 días hábiles',
-        announcements: [
-            `Envío gratis desde $${FREE_SHIPPING_THRESHOLD}`,
-            'Diseños 100% personalizables',
-            'Hecho a mano en Venezuela',
-        ],
+    /**
+     * How many categories (in admin order) each menu lists. The desktop header only has room
+     * for a few next to the other links; "Catálogo" reaches the rest. The mobile menu is a
+     * scrolling drawer, so it lists them all.
+     */
+    categoryLinkLimits: {
+        header: HEADER_CATEGORY_LIMIT,
+        footer: 8,
     },
 } as const

@@ -1,6 +1,13 @@
 import { useId, type ComponentPropsWithRef, type ReactNode } from 'react'
 
-import { FIELD_BASE_CLASS, FIELD_ERROR_CLASS } from '@/components/ui/field.styles'
+import {
+    FIELD_BASE_CLASS,
+    FIELD_ERROR_CLASS,
+    FIELD_HINT_CLASS,
+    FIELD_LABEL_CLASS,
+    FIELD_MESSAGE_ERROR_CLASS,
+} from '@/components/ui/field.styles'
+import { OptionalMark } from '@/components/ui/OptionalMark'
 import { cn } from '@/utils/cn'
 
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'id'> {
@@ -9,6 +16,8 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'id'> {
     hideLabel?: boolean
     hint?: string
     error?: string
+    /** Adds a muted "(opcional)" suffix to the label. */
+    optional?: boolean
     leadingIcon?: ReactNode
     /** Interactive slot pinned to the right edge, e.g. a clear button. */
     trailingAction?: ReactNode
@@ -19,6 +28,7 @@ export function Input({
     hideLabel = false,
     hint,
     error,
+    optional = false,
     leadingIcon,
     trailingAction,
     className,
@@ -30,11 +40,9 @@ export function Input({
 
     return (
         <div className="flex w-full flex-col gap-1.5">
-            <label
-                htmlFor={inputId}
-                className={cn('text-sm font-semibold text-ink', hideLabel && 'sr-only')}
-            >
+            <label htmlFor={inputId} className={cn(FIELD_LABEL_CLASS, hideLabel && 'sr-only')}>
                 {label}
+                {optional ? <OptionalMark /> : null}
             </label>
 
             <div className="relative">
@@ -70,11 +78,11 @@ export function Input({
             </div>
 
             {error ? (
-                <p id={errorId} role="alert" className="text-sm font-medium text-blush-700">
+                <p id={errorId} role="alert" className={FIELD_MESSAGE_ERROR_CLASS}>
                     {error}
                 </p>
             ) : hint ? (
-                <p id={hintId} className="text-sm text-ink-soft">
+                <p id={hintId} className={FIELD_HINT_CLASS}>
                     {hint}
                 </p>
             ) : null}

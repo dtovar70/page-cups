@@ -45,6 +45,7 @@ function createLine(product: Product, variantId: string, quantity: number): Cart
         variantLabel: variant.label,
         colorHex: product.colorHex,
         printText: product.printText,
+        imageUrl: product.images.at(0)?.url,
         unitPrice: product.price + variant.priceDelta,
         quantity: clampQuantity(quantity, product.stock),
     }

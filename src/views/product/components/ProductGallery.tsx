@@ -1,15 +1,13 @@
+import { useState } from 'react'
 import { cva } from 'class-variance-authority'
 
-import type { CategorySlug, Product, ProductVariant } from '@/@types/product'
+import type { Product, ProductVariant } from '@/@types/product'
 import { ProductIllustration } from '@/components/shared/ProductIllustration'
+import { ProductMedia } from '@/components/shared/ProductMedia'
+import { categorySurface } from '@/components/shared/illustration/artwork'
 import { Sticker } from '@/components/ui'
 import { cn } from '@/utils/cn'
-
-const SURFACE_BY_CATEGORY: Record<CategorySlug, string> = {
-    mugs: 'bg-blush-50',
-    tees: 'bg-sky-50',
-    keychains: 'bg-lilac-200/45',
-}
+import { useCategory } from '@/views/catalog/hooks/useCategories'
 
 const thumbVariants = cva(
     'flex size-20 items-center justify-center rounded-2xl border-2 bg-white p-1.5 transition duration-200',
@@ -35,15 +33,23 @@ function resolveColor(product: Product, variant?: ProductVariant): string {
 }
 
 export function ProductGallery({ product, selectedVariant, onSelectVariant }: ProductGalleryProps) {
-    const hasDiscount = product.compareAtPrice !== undefined && product.compareAtPrice > product.price
+    const hasDiscount =
+        product.compareAtPrice !== undefined && product.compareAtPrice > product.price
+    const [chosenImageId, setChosenImageId] = useState<string | null>(null)
+    const hasPhotos = product.images.length > 0
+    const activeImage =
+        product.images.find((image) => image.id === chosenImageId) ?? product.images.at(0)
+    const accentColor = useCategory(product.category)?.colorHex
+    const surface = categorySurface(product.category, accentColor ?? product.colorHex)
 
     return (
         <div className="space-y-4">
             <div
                 className={cn(
                     'relative flex items-center justify-center rounded-blob border border-line p-8 sm:p-12',
-                    SURFACE_BY_CATEGORY[product.category],
+                    surface.className,
                 )}
+                style={surface.style}
             >
                 {hasDiscount ? (
                     <Sticker tone="blush" size="lg" className="absolute top-5 left-5 shadow-lift">
@@ -51,37 +57,71 @@ export function ProductGallery({ product, selectedVariant, onSelectVariant }: Pr
                     </Sticker>
                 ) : null}
 
-                <ProductIllustration
+                <ProductMedia
                     category={product.category}
                     color={resolveColor(product, selectedVariant)}
                     printText={product.printText}
+                    accentColor={accentColor}
+                    image={activeImage}
+                    fallbackAlt={product.name}
                     size="lg"
+                    loading="eager"
                     className="max-w-sm"
                 />
             </div>
 
-            <ul className="flex flex-wrap gap-3">
-                {product.variants.map((variant) => (
-                    <li key={variant.id}>
-                        <button
-                            type="button"
-                            onClick={() => onSelectVariant(variant.id)}
-                            aria-pressed={variant.id === selectedVariant?.id}
-                            aria-label={`Ver ${variant.label}`}
-                            className={thumbVariants({
-                                isSelected: variant.id === selectedVariant?.id,
-                            })}
-                        >
-                            <ProductIllustration
-                                category={product.category}
-                                color={resolveColor(product, variant)}
-                                printText={product.printText}
-                                size="lg"
-                            />
-                        </button>
-                    </li>
-                ))}
-            </ul>
+            {hasPhotos ? (
+                product.images.length > 1 ? (
+                    <ul className="flex flex-wrap gap-3">
+                        {product.images.map((image, index) => (
+                            <li key={image.id}>
+                                <button
+                                    type="button"
+                                    onClick={() => setChosenImageId(image.id)}
+                                    aria-pressed={image.id === activeImage?.id}
+                                    aria-label={`Ver foto ${index + 1} de ${product.images.length}`}
+                                    className={thumbVariants({
+                                        isSelected: image.id === activeImage?.id,
+                                    })}
+                                >
+                                    <img
+                                        src={image.url}
+                                        alt=""
+                                        loading="lazy"
+                                        decoding="async"
+                                        draggable={false}
+                                        className="size-full rounded-xl object-cover"
+                                    />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : null
+            ) : (
+                <ul className="flex flex-wrap gap-3">
+                    {product.variants.map((variant) => (
+                        <li key={variant.id}>
+                            <button
+                                type="button"
+                                onClick={() => onSelectVariant(variant.id)}
+                                aria-pressed={variant.id === selectedVariant?.id}
+                                aria-label={`Ver ${variant.label}`}
+                                className={thumbVariants({
+                                    isSelected: variant.id === selectedVariant?.id,
+                                })}
+                            >
+                                <ProductIllustration
+                                    category={product.category}
+                                    color={resolveColor(product, variant)}
+                                    printText={product.printText}
+                                    accentColor={accentColor}
+                                    size="lg"
+                                />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     )
 }

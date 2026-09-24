@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 
 import { ClearCartButton } from '@/components/shared/ClearCartButton'
 import { FreeShippingProgress } from '@/components/shared/FreeShippingProgress'
-import { ProductIllustration } from '@/components/shared/ProductIllustration'
+import { ProductMedia } from '@/components/shared/ProductMedia'
 import { Button, ButtonLink, Drawer, QuantityStepper } from '@/components/ui'
 import { MAX_LINE_QUANTITY, useCartActions, useCartItems, useCartSubtotal } from '@/store/cartStore'
 import { productPath, ROUTES } from '@/constants/route.constant'
@@ -77,10 +77,12 @@ export function CartDrawer() {
                         {items.map((item) => (
                             <li key={item.lineId} className="flex gap-3 py-4">
                                 <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5">
-                                    <ProductIllustration
+                                    <ProductMedia
                                         category={item.category}
                                         color={item.colorHex}
                                         printText={item.printText}
+                                        image={item.imageUrl ? { url: item.imageUrl } : undefined}
+                                        fallbackAlt={item.name}
                                         size="sm"
                                     />
                                 </div>

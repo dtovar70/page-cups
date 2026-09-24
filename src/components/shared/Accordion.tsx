@@ -15,7 +15,12 @@ export interface AccordionProps {
 
 export function Accordion({ items, className }: AccordionProps) {
     return (
-        <div className={cn('divide-y divide-line overflow-hidden rounded-3xl border border-line bg-white', className)}>
+        <div
+            className={cn(
+                'divide-y divide-line overflow-hidden rounded-3xl border border-line bg-white',
+                className,
+            )}
+        >
             {items.map((item) => (
                 <details key={item.id} className="group px-5 py-4 open:bg-blush-50/50">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base text-ink">

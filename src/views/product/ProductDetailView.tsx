@@ -6,7 +6,6 @@ import { AddToCartButton } from '@/components/shared/AddToCartButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PriceTag } from '@/components/shared/PriceTag'
 import { Badge, Button, QuantityStepper, Rating } from '@/components/ui'
-import { appConfig } from '@/configs/app.config'
 import { CONTAINER } from '@/constants/layout.constant'
 import { categoryPath, ROUTES } from '@/constants/route.constant'
 import { NotFoundError } from '@/services/ProductService'
@@ -20,6 +19,7 @@ import { VariantPicker } from '@/views/product/components/VariantPicker'
 import { useCategories } from '@/views/catalog/hooks/useCategories'
 import { useProduct } from '@/views/product/hooks/useProduct'
 import { NotFoundView } from '@/views/others/NotFoundView'
+import { useShippingContent } from '@/utils/hooks/useSiteContent'
 
 const pageClass = 'space-y-16 py-10 lg:py-14'
 const breadcrumbLinkClass = 'text-ink-soft transition hover:text-blush-600'
@@ -30,6 +30,7 @@ export function ProductDetailView() {
     const { data: categories } = useCategories()
     const [chosenVariantId, setChosenVariantId] = useState<string | null>(null)
     const [quantity, setQuantity] = useState(1)
+    const shipping = useShippingContent()
 
     if (error instanceof NotFoundError) return <NotFoundView />
 
@@ -118,11 +119,7 @@ export function ProductDetailView() {
 
                     <Rating value={product.rating} reviewCount={product.reviewCount} size="lg" />
 
-                    <PriceTag
-                        price={unitPrice}
-                        compareAtPrice={product.compareAtPrice}
-                        size="lg"
-                    />
+                    <PriceTag price={unitPrice} compareAtPrice={product.compareAtPrice} size="lg" />
 
                     <p className="text-ink-soft">{product.description}</p>
 
@@ -152,7 +149,7 @@ export function ProductDetailView() {
 
                     <p className="flex items-center gap-2 text-sm text-ink-soft">
                         <Truck aria-hidden="true" className="size-4 text-blush-500" />
-                        {appConfig.shipping.freeShippingCopy} · {appConfig.shipping.productionCopy}
+                        {shipping.freeShippingText} · {shipping.productionCopy}
                     </p>
                 </div>
             </div>

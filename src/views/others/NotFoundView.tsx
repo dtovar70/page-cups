@@ -26,7 +26,7 @@ export function NotFoundView() {
                     </Sticker>
                 </div>
 
-                <h1 className="font-display text-5xl tracking-tight text-ink uppercase sm:text-6xl text-balance">
+                <h1 className="font-display text-5xl tracking-tight text-balance text-ink uppercase sm:text-6xl">
                     Se nos <span className="text-blush-500">derramó</span> el café
                 </h1>
 

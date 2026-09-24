@@ -21,8 +21,6 @@ export const SORT_OPTIONS = [
     'rating',
 ] as const satisfies readonly SortOption[]
 
-export const CATEGORY_SLUGS = ['mugs', 'tees', 'keychains'] as const satisfies readonly CategorySlug[]
-
 export const PRODUCT_TAGS = [
     'nuevo',
     'bestseller',
@@ -79,13 +77,9 @@ function parseFilters(categoryParam: string | undefined, params: URLSearchParams
     const rawPrice = params.get(PRICE_PARAM)
     const rawPage = Number.parseInt(params.get(PAGE_PARAM) ?? '1', 10)
 
-    const category =
-        categoryParam !== undefined && isMember(CATEGORY_SLUGS, categoryParam)
-            ? categoryParam
-            : undefined
-
     return {
-        category,
+        // Categories are dynamic: any slug is kept, and the view decides whether it exists.
+        category: categoryParam || undefined,
         search: params.get(CATALOG_SEARCH_PARAM)?.trim() ?? '',
         sort: isMember(SORT_OPTIONS, rawSort) ? rawSort : 'relevance',
         priceBracket: isMember(PRICE_BRACKET_IDS, rawPrice) ? rawPrice : 'all',

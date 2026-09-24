@@ -7,23 +7,24 @@ import { Button, ButtonLink } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
 import { ROUTES } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 import { FEATURED_LIMIT, useFeaturedProducts } from '@/views/home/hooks/useFeaturedProducts'
 
 export function FeaturedProducts() {
     const { data: products, isPending, isError, refetch } = useFeaturedProducts()
+    const { home } = useSiteContent()
 
     return (
         <section aria-labelledby="featured-heading" className="py-16 lg:py-24">
             <div className={cn(CONTAINER, 'space-y-10')}>
                 <SectionHeading
                     headingId="featured-heading"
-                    eyebrow="Los más pedidos"
-                    title="Tus favoritos"
-                    highlight="favoritos"
-                    description="Los diseños que más salen de nuestro taller esta temporada."
+                    eyebrow={home.featuredEyebrow}
+                    title={home.featuredTitle}
+                    description={home.featuredDescription}
                     action={
                         <ButtonLink to={ROUTES.catalog} variant="secondary">
-                            Ver todo el catálogo
+                            {home.featuredCta}
                         </ButtonLink>
                     }
                 />

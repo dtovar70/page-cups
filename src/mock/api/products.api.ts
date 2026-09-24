@@ -3,16 +3,7 @@ import type { Category, Product } from '@/@types/product'
 import { categories } from '@/mock/data/categories.data'
 import { products } from '@/mock/data/products.data'
 import { testimonials } from '@/mock/data/testimonials.data'
-
-export class NotFoundError extends Error {
-    readonly resource: string
-
-    constructor(resource: string, identifier: string) {
-        super(`No encontramos ${resource} con el identificador "${identifier}".`)
-        this.name = 'NotFoundError'
-        this.resource = resource
-    }
-}
+import { NotFoundError } from '@/services/errors'
 
 const MIN_LATENCY_MS = 250
 const MAX_LATENCY_MS = 600
@@ -26,7 +17,10 @@ function delay(): Promise<void> {
 }
 
 function normalize(value: string): string {
-    return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    return value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
 }
 
 function matchesSearch(product: Product, search: string): boolean {

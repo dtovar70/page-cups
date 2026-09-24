@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
+import { HighlightedText } from '@/components/shared/HighlightedText'
 import { cn } from '@/utils/cn'
 
 const headingVariants = cva('font-display tracking-tight text-balance text-ink', {
@@ -17,11 +18,10 @@ const headingVariants = cva('font-display tracking-tight text-balance text-ink',
 })
 
 export interface SectionHeadingProps extends VariantProps<typeof headingVariants> {
+    /** Words between asterisks are painted in blush: "Tus *favoritos*". */
     title: string
     /** Applied to the heading element so a section can reference it with aria-labelledby. */
     headingId?: string
-    /** Word inside `title` painted in blush, the brand's signature headline accent. */
-    highlight?: string
     eyebrow?: string
     description?: string
     align?: 'left' | 'center'
@@ -29,23 +29,9 @@ export interface SectionHeadingProps extends VariantProps<typeof headingVariants
     className?: string
 }
 
-function splitOnHighlight(title: string, highlight?: string): [string, string, string] {
-    if (!highlight) return [title, '', '']
-
-    const index = title.toLowerCase().indexOf(highlight.toLowerCase())
-    if (index < 0) return [title, '', '']
-
-    return [
-        title.slice(0, index),
-        title.slice(index, index + highlight.length),
-        title.slice(index + highlight.length),
-    ]
-}
-
 export function SectionHeading({
     title,
     headingId,
-    highlight,
     eyebrow,
     description,
     align = 'left',
@@ -54,7 +40,6 @@ export function SectionHeading({
     className,
 }: SectionHeadingProps) {
     const Heading = level ?? 'h2'
-    const [before, accent, after] = splitOnHighlight(title, highlight)
 
     return (
         <div
@@ -72,12 +57,12 @@ export function SectionHeading({
                 ) : null}
 
                 <Heading id={headingId} className={headingVariants({ level })}>
-                    {before}
-                    {accent ? <span className="text-blush-500">{accent}</span> : null}
-                    {after}
+                    <HighlightedText text={title} />
                 </Heading>
 
-                {description ? <p className="text-base text-ink-soft sm:text-lg">{description}</p> : null}
+                {description ? (
+                    <p className="text-base text-ink-soft sm:text-lg">{description}</p>
+                ) : null}
             </div>
 
             {action ? <div className="shrink-0">{action}</div> : null}

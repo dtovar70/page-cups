@@ -3,11 +3,12 @@ import { ShoppingBag } from 'lucide-react'
 
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ButtonLink } from '@/components/ui'
-import { appConfig, FREE_SHIPPING_THRESHOLD } from '@/configs/app.config'
 import { CONTAINER } from '@/constants/layout.constant'
 import { ROUTES } from '@/constants/route.constant'
 import { useCartActions, useCartItems, useCartSubtotal } from '@/store/cartStore'
 import { cn } from '@/utils/cn'
+import { shippingCost } from '@/utils/content'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 import { CheckoutForm } from '@/views/checkout/components/CheckoutForm'
 import { CheckoutSuccess } from '@/views/checkout/components/CheckoutSuccess'
 import { OrderSummary } from '@/views/checkout/components/OrderSummary'
@@ -34,7 +35,8 @@ export function CheckoutView() {
     const { clear } = useCartActions()
     const [order, setOrder] = useState<ConfirmedOrder | null>(null)
 
-    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : appConfig.shipping.flatRate
+    const content = useSiteContent()
+    const shipping = shippingCost(subtotal, content.shipping)
     const total = subtotal + shipping
 
     const handleConfirm = async (values: CheckoutValues) => {
@@ -66,7 +68,7 @@ export function CheckoutView() {
                     action={<ButtonLink to={ROUTES.catalog}>Explorar catálogo</ButtonLink>}
                 />
             ) : (
-                <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
                     <CheckoutForm onConfirm={handleConfirm} />
                     <OrderSummary
                         items={items}

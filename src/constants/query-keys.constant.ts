@@ -1,3 +1,4 @@
+import type { AdminProductQueryParams } from '@/@types/admin'
 import type { ProductQueryParams } from '@/@types/common'
 
 /**
@@ -21,5 +22,22 @@ export const queryKeys = {
     },
     testimonials: {
         all: ['testimonials'] as const,
+    },
+    /** Editable site content (`GET /content`), loaded once at start-up. */
+    content: ['content'] as const,
+    /** Current admin session (`GET /auth/me`); `null` data means logged out. */
+    session: ['session'] as const,
+    /** Everything behind the admin login, so logging out can drop it in one call. */
+    admin: {
+        all: ['admin'] as const,
+        products: {
+            all: () => [...queryKeys.admin.all, 'products'] as const,
+            lists: () => [...queryKeys.admin.products.all(), 'list'] as const,
+            list: (params: AdminProductQueryParams) =>
+                [...queryKeys.admin.products.lists(), params] as const,
+            detail: (id: string) => [...queryKeys.admin.products.all(), 'detail', id] as const,
+        },
+        categories: () => [...queryKeys.admin.all, 'categories'] as const,
+        content: () => [...queryKeys.admin.all, 'content'] as const,
     },
 } as const

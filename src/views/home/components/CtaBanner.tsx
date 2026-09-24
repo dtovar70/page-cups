@@ -1,10 +1,14 @@
+import { HighlightedText } from '@/components/shared/HighlightedText'
 import { Newsletter } from '@/components/shared/Newsletter'
 import { ButtonLink, Sticker } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
 import { ROUTES } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 export function CtaBanner() {
+    const { home } = useSiteContent()
+
     return (
         <section aria-labelledby="cta-heading" className="pb-20">
             <div className={CONTAINER}>
@@ -22,33 +26,33 @@ export function CtaBanner() {
                     <div className="grid items-center gap-10 lg:grid-cols-2">
                         <div className="space-y-6">
                             <Sticker tone="mint" rotation="right">
-                                Pedidos por mayor
+                                {home.ctaBadge}
                             </Sticker>
 
                             <h2
                                 id="cta-heading"
                                 className="font-display text-3xl tracking-tight text-ink uppercase sm:text-4xl lg:text-5xl"
                             >
-                                ¿Tienes una <span className="text-blush-500">idea</span> en mente?
+                                <HighlightedText text={home.ctaTitle} />
                             </h2>
 
-                            <p className="max-w-md text-ink-soft">
-                                Cuéntanos qué necesitas y te mandamos un boceto sin compromiso. Desde
-                                una pieza hasta cien.
-                            </p>
+                            <p className="max-w-md text-ink-soft">{home.ctaDescription}</p>
 
                             <div className="flex flex-wrap gap-3">
                                 <ButtonLink to={ROUTES.contact} size="lg">
-                                    Pedir mi diseño
+                                    {home.ctaPrimary}
                                 </ButtonLink>
                                 <ButtonLink to={ROUTES.about} size="lg" variant="secondary">
-                                    Conócenos
+                                    {home.ctaSecondary}
                                 </ButtonLink>
                             </div>
                         </div>
 
                         <div className="rounded-3xl border border-line bg-white/80 p-6 shadow-soft backdrop-blur-sm">
-                            <Newsletter />
+                            <Newsletter
+                                title={home.newsletterTitle}
+                                description={home.newsletterDescription}
+                            />
                         </div>
                     </div>
                 </div>

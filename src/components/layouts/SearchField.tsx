@@ -6,6 +6,7 @@ import { Input } from '@/components/ui'
 import { ROUTES } from '@/constants/route.constant'
 import { useDebouncedValue } from '@/utils/hooks/useDebouncedValue'
 import { CATALOG_SEARCH_PARAM } from '@/views/catalog/hooks/useCatalogFilters'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 const DEBOUNCE_MS = 400
 
@@ -16,6 +17,7 @@ export interface SearchFieldProps {
 }
 
 export function SearchField({ className, onNavigate }: SearchFieldProps) {
+    const { general } = useSiteContent()
     const navigate = useNavigate()
     const [term, setTerm] = useState('')
     const debouncedTerm = useDebouncedValue(term, DEBOUNCE_MS)
@@ -58,7 +60,7 @@ export function SearchField({ className, onNavigate }: SearchFieldProps) {
                 hideLabel
                 type="search"
                 value={term}
-                placeholder="Buscar tazas, franelas…"
+                placeholder={general.searchPlaceholder}
                 leadingIcon={<Search aria-hidden="true" className="size-4" />}
                 trailingAction={
                     term ? (

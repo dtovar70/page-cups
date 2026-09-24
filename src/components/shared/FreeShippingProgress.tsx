@@ -1,6 +1,6 @@
-import { FREE_SHIPPING_THRESHOLD } from '@/configs/app.config'
 import { cn } from '@/utils/cn'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 export interface FreeShippingProgressProps {
     subtotal: number
@@ -8,8 +8,11 @@ export interface FreeShippingProgressProps {
 }
 
 export function FreeShippingProgress({ subtotal, className }: FreeShippingProgressProps) {
-    const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
-    const percent = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+    const { freeThreshold } = useSiteContent().shipping
+    const remaining = Math.max(0, freeThreshold - subtotal)
+    // A zero threshold means every order ships free.
+    const percent =
+        freeThreshold > 0 ? Math.min(100, Math.round((subtotal / freeThreshold) * 100)) : 100
 
     return (
         <div className={cn('space-y-2', className)}>
@@ -21,8 +24,8 @@ export function FreeShippingProgress({ subtotal, className }: FreeShippingProgre
                 ) : (
                     <>
                         Te faltan{' '}
-                        <span className="font-semibold text-ink">{formatCurrency(remaining)}</span> para
-                        el envío gratis.
+                        <span className="font-semibold text-ink">{formatCurrency(remaining)}</span>{' '}
+                        para el envío gratis.
                     </>
                 )}
             </p>

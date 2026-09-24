@@ -1,9 +1,10 @@
-import { PackageOpen, SearchX, X } from 'lucide-react'
+import { PackageOpen, SearchX, Tags, X } from 'lucide-react'
 
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ProductGrid } from '@/components/shared/ProductGrid'
-import { Button, Card } from '@/components/ui'
+import { Button, ButtonLink, Card } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
+import { ROUTES } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
 import { CatalogFilters } from '@/views/catalog/components/CatalogFilters'
 import { CatalogPagination } from '@/views/catalog/components/CatalogPagination'
@@ -15,12 +16,39 @@ import { useProducts } from '@/views/catalog/hooks/useProducts'
 export function CatalogView() {
     const catalog = useCatalogFilters()
     const { filters } = catalog
-    const { data, isPending, isError, isPlaceholderData, refetch } = useProducts(catalog.queryParams)
     const { data: categories } = useCategories()
 
     const activeCategory = (categories ?? []).find((category) => category.slug === filters.category)
+    /** A deleted category, or a mistyped link: known only once the categories have loaded. */
+    const isUnknownCategory =
+        filters.category !== undefined && categories !== undefined && !activeCategory
+    const { data, isPending, isError, isPlaceholderData, refetch } = useProducts(
+        catalog.queryParams,
+        { enabled: !isUnknownCategory },
+    )
     const products = data?.items ?? []
     const hasNoResults = !isPending && !isError && products.length === 0
+
+    if (isUnknownCategory) {
+        return (
+            <div className={cn(CONTAINER, 'space-y-8 py-12 lg:py-16')}>
+                <header className="space-y-3">
+                    <p className="font-display text-sm font-semibold tracking-[0.2em] text-blush-500 uppercase">
+                        Catálogo
+                    </p>
+                    <h1 className="font-display text-4xl tracking-tight text-ink uppercase sm:text-5xl">
+                        Categoría no encontrada
+                    </h1>
+                </header>
+                <EmptyState
+                    title="Esta categoría ya no existe"
+                    description="Puede que la hayamos retirado o que el enlace esté mal escrito. El resto del catálogo sigue aquí."
+                    icon={<Tags className="size-6" />}
+                    action={<ButtonLink to={ROUTES.catalog}>Ver todo el catálogo</ButtonLink>}
+                />
+            </div>
+        )
+    }
 
     return (
         <div className={cn(CONTAINER, 'space-y-8 py-12 lg:py-16')}>
@@ -54,7 +82,7 @@ export function CatalogView() {
                 ) : null}
             </header>
 
-            <div className="grid gap-8 lg:grid-cols-[17rem_1fr]">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
                 <aside aria-label="Filtros del catálogo" className="h-fit lg:sticky lg:top-28">
                     <Card padding="lg">
                         <CatalogFilters

@@ -12,7 +12,10 @@ export function CatalogPagination({ page, totalPages, onPageChange }: CatalogPag
     if (totalPages <= 1) return null
 
     return (
-        <nav aria-label="Paginación del catálogo" className="flex items-center justify-center gap-3">
+        <nav
+            aria-label="Paginación del catálogo"
+            className="flex items-center justify-center gap-3"
+        >
             <Button
                 variant="secondary"
                 size="sm"

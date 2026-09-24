@@ -37,3 +37,46 @@ export const ContactView = lazy(() =>
 export const NotFoundView = lazy(() =>
     import('@/views/others/NotFoundView').then((module) => ({ default: module.NotFoundView })),
 )
+
+/*
+ * Back office: its own chunks, so storefront visitors never download the admin code.
+ */
+export const AdminShell = lazy(() =>
+    import('@/views/admin/AdminShell').then((module) => ({ default: module.AdminShell })),
+)
+
+export const AdminLoginView = lazy(() =>
+    import('@/views/admin/auth/AdminLoginView').then((module) => ({
+        default: module.AdminLoginView,
+    })),
+)
+
+export const AdminProductsView = lazy(() =>
+    import('@/views/admin/products/AdminProductsView').then((module) => ({
+        default: module.AdminProductsView,
+    })),
+)
+
+export const AdminProductCreateView = lazy(() =>
+    import('@/views/admin/products/AdminProductCreateView').then((module) => ({
+        default: module.AdminProductCreateView,
+    })),
+)
+
+export const AdminProductEditView = lazy(() =>
+    import('@/views/admin/products/AdminProductEditView').then((module) => ({
+        default: module.AdminProductEditView,
+    })),
+)
+
+export const AdminCategoriesView = lazy(() =>
+    import('@/views/admin/categories/AdminCategoriesView').then((module) => ({
+        default: module.AdminCategoriesView,
+    })),
+)
+
+export const AdminContentView = lazy(() =>
+    import('@/views/admin/content/AdminContentView').then((module) => ({
+        default: module.AdminContentView,
+    })),
+)

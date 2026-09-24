@@ -61,7 +61,9 @@ export function CatalogFilters({
                     {(categories ?? []).map((category) => (
                         <label
                             key={category.slug}
-                            className={chipVariants({ isSelected: filters.category === category.slug })}
+                            className={chipVariants({
+                                isSelected: filters.category === category.slug,
+                            })}
                         >
                             <input
                                 type="radio"

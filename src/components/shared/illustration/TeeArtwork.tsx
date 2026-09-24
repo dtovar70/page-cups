@@ -51,15 +51,7 @@ export function TeeArtwork({ color, theme, printText }: ArtworkProps) {
                 opacity={0.3}
             />
 
-            <rect
-                x={82}
-                y={84}
-                width={76}
-                height={64}
-                rx={10}
-                fill="#FFFFFF"
-                opacity={0.18}
-            />
+            <rect x={82} y={84} width={76} height={64} rx={10} fill="#FFFFFF" opacity={0.18} />
 
             <PrintLabel
                 text={printText}

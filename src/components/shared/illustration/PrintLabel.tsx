@@ -39,7 +39,11 @@ export function PrintLabel({ text, x, y, width, color, maxLines = 3 }: PrintLabe
             fill={color}
         >
             {lines.map((line, index) => (
-                <tspan key={`${index}-${line}`} x={x} dy={index === 0 ? firstLineOffset : lineHeight}>
+                <tspan
+                    key={`${index}-${line}`}
+                    x={x}
+                    dy={index === 0 ? firstLineOffset : lineHeight}
+                >
                     {line}
                 </tspan>
             ))}

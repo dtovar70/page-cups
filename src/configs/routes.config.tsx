@@ -1,13 +1,20 @@
 import { Suspense, type ReactElement } from 'react'
-import type { RouteObject } from 'react-router'
+import { Navigate, type RouteObject } from 'react-router'
 
 import { StoreLayout } from '@/components/layouts/StoreLayout'
 import { RouteError } from '@/components/route/RouteError'
 import { RouteFallback } from '@/components/route/RouteFallback'
-import { DEV_ROUTES, ROUTES } from '@/constants/route.constant'
+import { ADMIN_ROUTES, DEV_ROUTES, ROUTES } from '@/constants/route.constant'
 import { LoaderPreviewView } from '@/views/others/LoaderPreviewView'
 import {
     AboutView,
+    AdminCategoriesView,
+    AdminContentView,
+    AdminLoginView,
+    AdminProductCreateView,
+    AdminProductEditView,
+    AdminProductsView,
+    AdminShell,
     CartView,
     CatalogView,
     CheckoutView,
@@ -46,6 +53,29 @@ export const routes: RouteObject[] = [
             { path: ROUTES.contact, element: withSuspense(<ContactView />) },
             ...devRoutes,
             { path: ROUTES.notFound, element: withSuspense(<NotFoundView />) },
+        ],
+    },
+    /*
+     * Back office, outside `StoreLayout` so none of the storefront chrome renders there.
+     * Everything below `/admin` except the login page sits behind `RequireAdmin`.
+     */
+    {
+        path: ADMIN_ROUTES.login,
+        element: withSuspense(<AdminLoginView />),
+        errorElement: <RouteError />,
+    },
+    {
+        path: ADMIN_ROUTES.root,
+        element: withSuspense(<AdminShell />),
+        errorElement: <RouteError />,
+        children: [
+            { index: true, element: <Navigate to={ADMIN_ROUTES.products} replace /> },
+            { path: ADMIN_ROUTES.products, element: withSuspense(<AdminProductsView />) },
+            { path: ADMIN_ROUTES.productNew, element: withSuspense(<AdminProductCreateView />) },
+            { path: ADMIN_ROUTES.productEdit, element: withSuspense(<AdminProductEditView />) },
+            { path: ADMIN_ROUTES.categories, element: withSuspense(<AdminCategoriesView />) },
+            { path: ADMIN_ROUTES.content, element: withSuspense(<AdminContentView />) },
+            { path: '*', element: <Navigate to={ADMIN_ROUTES.products} replace /> },
         ],
     },
 ]

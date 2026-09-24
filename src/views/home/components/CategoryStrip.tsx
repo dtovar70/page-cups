@@ -6,22 +6,29 @@ import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button, Skeleton } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
 import { cn } from '@/utils/cn'
+import { categoryCountPhrase, fillPlaceholdersInSentence } from '@/utils/content'
+import { useFillPlaceholders, useSiteContent } from '@/utils/hooks/useSiteContent'
 import { useCategories } from '@/views/catalog/hooks/useCategories'
 
 const SKELETON_COUNT = 3
 
 export function CategoryStrip() {
     const { data: categories, isPending, isError, refetch } = useCategories()
+    const { home } = useSiteContent()
+    const fill = useFillPlaceholders()
+    // "{categorias}" is the live category count (categories are managed in the admin).
+    const description = fillPlaceholdersInSentence(fill(home.categoriesDescription), {
+        categorias: categoryCountPhrase(categories?.length),
+    })
 
     return (
         <section aria-labelledby="categories-heading" className="bg-sky-50 py-16 lg:py-24">
             <div className={cn(CONTAINER, 'space-y-10')}>
                 <SectionHeading
                     headingId="categories-heading"
-                    eyebrow="Qué hacemos"
-                    title="Elige tu lienzo favorito"
-                    highlight="lienzo"
-                    description="Tres formatos, infinitas ideas. Todos se personalizan con tu texto, tu foto o tu logo."
+                    eyebrow={home.categoriesEyebrow}
+                    title={home.categoriesTitle}
+                    description={description}
                 />
 
                 {isError ? (
@@ -36,7 +43,15 @@ export function CategoryStrip() {
                         }
                     />
                 ) : (
-                    <ul className="grid gap-6 md:grid-cols-3">
+                    <ul
+                        className={cn(
+                            'grid gap-6',
+                            // Four cards read better as 2x2 / 1x4 than as a row of three plus one.
+                            categories?.length === 4
+                                ? 'md:grid-cols-2 xl:grid-cols-4'
+                                : 'md:grid-cols-3',
+                        )}
+                    >
                         {isPending
                             ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
                                   <li key={index}>

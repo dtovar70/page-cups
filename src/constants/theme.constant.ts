@@ -1,4 +1,5 @@
 import type { CategorySlug } from '@/@types/product'
+import { mixHex } from '@/utils/color'
 
 /**
  * Hex mirror of the `@theme` tokens in `index.css`. Inline SVG illustrations need
@@ -50,7 +51,19 @@ export interface CategoryTheme {
     print: string
 }
 
-export const CATEGORY_THEME: Record<CategorySlug, CategoryTheme> = {
+/**
+ * Categories that have their own illustration and palette. Categories created later from the
+ * admin fall back to the generic artwork, tinted with the category color.
+ */
+export const ARTWORK_CATEGORIES = ['mugs', 'tees', 'keychains'] as const
+
+export type ArtworkCategory = (typeof ARTWORK_CATEGORIES)[number]
+
+export function hasDedicatedArtwork(slug: CategorySlug): slug is ArtworkCategory {
+    return (ARTWORK_CATEGORIES as readonly string[]).includes(slug)
+}
+
+export const CATEGORY_THEME: Record<ArtworkCategory, CategoryTheme> = {
     mugs: {
         surface: PALETTE.blush50,
         stroke: PALETTE.blush600,
@@ -70,3 +83,24 @@ export const CATEGORY_THEME: Record<CategorySlug, CategoryTheme> = {
         print: PALETTE.ink,
     },
 } as const
+
+/** Tailwind backdrop behind a product of a category with dedicated artwork. */
+export const CATEGORY_SURFACE_CLASS: Record<ArtworkCategory, string> = {
+    mugs: 'bg-blush-50',
+    tees: 'bg-sky-50',
+    keychains: 'bg-lilac-200/45',
+}
+
+/** Palette for the generic artwork, derived from one accent (usually the category color). */
+export function genericCategoryTheme(accent: string): CategoryTheme {
+    return {
+        surface: mixHex(accent, '#FFFFFF', 0.82),
+        stroke: mixHex(accent, PALETTE.ink, 0.45),
+        accent: mixHex(accent, '#FFFFFF', 0.4),
+        print: PALETTE.ink,
+    }
+}
+
+export function categoryTheme(slug: CategorySlug, accent: string): CategoryTheme {
+    return hasDedicatedArtwork(slug) ? CATEGORY_THEME[slug] : genericCategoryTheme(accent)
+}

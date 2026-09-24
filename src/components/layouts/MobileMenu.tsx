@@ -3,9 +3,10 @@ import { NavLink } from 'react-router'
 
 import { ButtonLink, Drawer } from '@/components/ui'
 import { SearchField } from '@/components/layouts/SearchField'
-import { appConfig } from '@/configs/app.config'
 import { ROUTES } from '@/constants/route.constant'
 import { useMobileMenu } from '@/store/uiStore'
+import { useNavLinks } from '@/utils/hooks/useNavLinks'
+import { useShippingContent } from '@/utils/hooks/useSiteContent'
 
 const mobileLinkVariants = cva(
     'block rounded-2xl px-4 py-3 font-display text-lg transition duration-200',
@@ -22,6 +23,8 @@ const mobileLinkVariants = cva(
 
 export function MobileMenu() {
     const { isOpen, close } = useMobileMenu()
+    const navLinks = useNavLinks()
+    const { freeShippingText } = useShippingContent()
 
     return (
         <Drawer isOpen={isOpen} onClose={close} title="Menú" side="left">
@@ -30,7 +33,7 @@ export function MobileMenu() {
 
                 <nav aria-label="Navegación móvil">
                     <ul className="space-y-1">
-                        {appConfig.navLinks.map((link) => (
+                        {navLinks.map((link) => (
                             <li key={link.to}>
                                 <NavLink
                                     to={link.to}
@@ -49,7 +52,7 @@ export function MobileMenu() {
                     Explorar catálogo
                 </ButtonLink>
 
-                <p className="text-sm text-ink-soft">{appConfig.shipping.freeShippingCopy}</p>
+                <p className="text-sm text-ink-soft">{freeShippingText}</p>
             </div>
         </Drawer>
     )

@@ -1,6 +1,7 @@
 import { Check, Sparkles } from 'lucide-react'
 import { motion } from 'motion/react'
 
+import { HighlightedText } from '@/components/shared/HighlightedText'
 import { ProductIllustration } from '@/components/shared/ProductIllustration'
 import { ButtonLink, Sticker } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
@@ -8,10 +9,10 @@ import { ROUTES } from '@/constants/route.constant'
 import { PALETTE } from '@/constants/theme.constant'
 import { cn } from '@/utils/cn'
 import { usePrefersReducedMotion } from '@/utils/hooks/useMediaQuery'
-
-const FEATURES = ['100% personalizable', 'Envío nacional', 'Hecho a mano']
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 export function Hero() {
+    const { home } = useSiteContent()
     const prefersReducedMotion = usePrefersReducedMotion()
     const entrance = prefersReducedMotion ? false : { opacity: 0, y: 24 }
 
@@ -35,41 +36,39 @@ export function Hero() {
                 >
                     <Sticker tone="butter" rotation="right" className="inline-flex gap-1.5">
                         <Sparkles aria-hidden="true" className="size-4" />
-                        Sublimación hecha con amor
+                        {home.heroBadge}
                     </Sticker>
 
-                    <h1 className="font-display text-5xl leading-[0.95] tracking-tight text-ink uppercase sm:text-6xl lg:text-7xl text-balance">
-                        Tazas, franelas y llaveros{' '}
-                        <span className="text-blush-500">que hablan</span> por ti
+                    <h1 className="font-display text-5xl leading-[0.95] tracking-tight text-balance text-ink uppercase sm:text-6xl lg:text-7xl">
+                        <HighlightedText text={home.heroTitle} />
                     </h1>
 
-                    <p className="max-w-lg text-lg text-ink-soft">
-                        Tú mandas la idea, nosotros la sublimamos. Piezas únicas para regalar, para
-                        tu marca o simplemente porque sí.
-                    </p>
+                    <p className="max-w-lg text-lg text-ink-soft">{home.heroSubtitle}</p>
 
                     <div className="flex flex-wrap gap-3">
                         <ButtonLink to={ROUTES.catalog} size="lg">
-                            Explorar catálogo
+                            {home.heroPrimaryCta}
                         </ButtonLink>
                         <ButtonLink to={ROUTES.contact} size="lg" variant="secondary">
-                            Personalizar el mío
+                            {home.heroSecondaryCta}
                         </ButtonLink>
                     </div>
 
-                    <ul className="flex flex-wrap gap-x-6 gap-y-2">
-                        {FEATURES.map((feature) => (
-                            <li
-                                key={feature}
-                                className="flex items-center gap-2 text-sm font-semibold text-ink-soft"
-                            >
-                                <span className="flex size-5 items-center justify-center rounded-full bg-mint-200 text-ink">
-                                    <Check aria-hidden="true" className="size-3" />
-                                </span>
-                                {feature}
-                            </li>
-                        ))}
-                    </ul>
+                    {home.heroFeatures.length > 0 ? (
+                        <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                            {home.heroFeatures.map((feature, index) => (
+                                <li
+                                    key={`${index}-${feature}`}
+                                    className="flex items-center gap-2 text-sm font-semibold text-ink-soft"
+                                >
+                                    <span className="flex size-5 items-center justify-center rounded-full bg-mint-200 text-ink">
+                                        <Check aria-hidden="true" className="size-3" />
+                                    </span>
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : null}
                 </motion.div>
 
                 <motion.div

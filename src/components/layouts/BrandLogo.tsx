@@ -3,8 +3,8 @@ import { Link } from 'react-router'
 import { appConfig } from '@/configs/app.config'
 import { ROUTES } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
-
-const [PRIMARY_LINE, SECONDARY_LINE] = appConfig.brandLines
+import { brandLines } from '@/utils/content'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 export interface BrandLogoProps {
     className?: string
@@ -13,10 +13,13 @@ export interface BrandLogoProps {
 }
 
 export function BrandLogo({ className, withTagline = false }: BrandLogoProps) {
+    const { general } = useSiteContent()
+    const [primaryLine, secondaryLine] = brandLines(general.brandName)
+
     return (
         <Link
             to={ROUTES.home}
-            aria-label={`${appConfig.brand} — ir al inicio`}
+            aria-label={`${general.brandName} — ir al inicio`}
             className={cn('group inline-flex items-center gap-2.5 rounded-2xl', className)}
         >
             <img
@@ -31,14 +34,16 @@ export function BrandLogo({ className, withTagline = false }: BrandLogoProps) {
 
             <span className="flex flex-col leading-none">
                 <span className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
-                    {PRIMARY_LINE}
+                    {primaryLine}
                 </span>
-                <span className="text-[0.65rem] font-bold tracking-[0.22em] text-blush-500 uppercase sm:text-xs">
-                    {SECONDARY_LINE}
-                </span>
+                {secondaryLine ? (
+                    <span className="text-[0.65rem] font-bold tracking-[0.22em] text-blush-500 uppercase sm:text-xs">
+                        {secondaryLine}
+                    </span>
+                ) : null}
                 {withTagline ? (
                     <span className="mt-1.5 text-sm font-normal tracking-normal text-ink-soft normal-case">
-                        {appConfig.tagline}
+                        {general.tagline}
                     </span>
                 ) : null}
             </span>

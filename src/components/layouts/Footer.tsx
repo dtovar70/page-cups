@@ -1,18 +1,15 @@
 import { Link } from 'react-router'
 
 import { BrandLogo } from '@/components/layouts/BrandLogo'
-import { Newsletter } from '@/components/shared/Newsletter'
 import { appConfig } from '@/configs/app.config'
 import { CONTAINER } from '@/constants/layout.constant'
-import { categoryPath, ROUTES } from '@/constants/route.constant'
+import { ROUTES } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
+import { socialLinks } from '@/utils/content'
+import { useCategoryLinks } from '@/utils/hooks/useNavLinks'
+import { useShippingContent, useSiteContent } from '@/utils/hooks/useSiteContent'
 
-const PRODUCT_LINKS = [
-    { label: 'Tazas', to: categoryPath('mugs') },
-    { label: 'Franelas', to: categoryPath('tees') },
-    { label: 'Llaveros', to: categoryPath('keychains') },
-    { label: 'Todo el catálogo', to: ROUTES.catalog },
-]
+const CATALOG_LINK = { label: 'Todo el catálogo', to: ROUTES.catalog }
 
 const HELP_LINKS = [
     { label: 'Nosotros', to: ROUTES.about },
@@ -24,14 +21,25 @@ const HELP_LINKS = [
 const linkClass = 'text-sm text-ink-soft transition hover:text-blush-600'
 
 export function Footer() {
+    const productLinks = [...useCategoryLinks(appConfig.categoryLinkLimits.footer), CATALOG_LINK]
+    const { general, contact } = useSiteContent()
+    const { productionCopy } = useShippingContent()
+    // Split so the address can wrap after the "@" in the narrow two-column footer on phones.
+    const [emailUser, emailDomain] = contact.email.split('@')
+
     return (
         <footer className="mt-20 border-t border-line bg-white">
-            <div className={cn(CONTAINER, 'grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4')}>
-                <div className="space-y-4">
+            <div
+                className={cn(
+                    CONTAINER,
+                    'flex flex-col gap-12 py-14 md:flex-row md:items-start md:justify-between',
+                )}
+            >
+                <div className="max-w-sm space-y-4">
                     <BrandLogo withTagline />
-                    <p className="max-w-xs text-sm text-ink-soft">{appConfig.description}</p>
+                    <p className="max-w-xs text-sm text-ink-soft">{general.description}</p>
                     <ul className="space-y-1.5">
-                        {appConfig.socials.map((social) => (
+                        {socialLinks(contact).map((social) => (
                             <li key={social.label}>
                                 <a
                                     href={social.href}
@@ -46,48 +54,45 @@ export function Footer() {
                     </ul>
                 </div>
 
-                <nav aria-labelledby="footer-products" className="space-y-4">
-                    <h2 id="footer-products" className="font-display text-base text-ink">
-                        Productos
-                    </h2>
-                    <ul className="space-y-2">
-                        {PRODUCT_LINKS.map((link) => (
-                            <li key={link.to}>
-                                <Link to={link.to} className={linkClass}>
-                                    {link.label}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+                <div className="grid grid-cols-2 gap-10 sm:gap-16 lg:gap-24">
+                    <nav aria-labelledby="footer-products" className="space-y-4">
+                        <h2 id="footer-products" className="font-display text-base text-ink">
+                            Productos
+                        </h2>
+                        <ul className="space-y-2">
+                            {productLinks.map((link) => (
+                                <li key={link.to}>
+                                    <Link to={link.to} className={linkClass}>
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
 
-                <nav aria-labelledby="footer-help" className="space-y-4">
-                    <h2 id="footer-help" className="font-display text-base text-ink">
-                        Ayuda
-                    </h2>
-                    <ul className="space-y-2">
-                        {HELP_LINKS.map((link) => (
-                            <li key={link.to}>
-                                <Link to={link.to} className={linkClass}>
-                                    {link.label}
-                                </Link>
+                    <nav aria-labelledby="footer-help" className="space-y-4">
+                        <h2 id="footer-help" className="font-display text-base text-ink">
+                            Ayuda
+                        </h2>
+                        <ul className="space-y-2">
+                            {HELP_LINKS.map((link) => (
+                                <li key={link.to}>
+                                    <Link to={link.to} className={linkClass}>
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                            <li className="text-sm text-ink-soft">{contact.schedule}</li>
+                            <li>
+                                <a href={`mailto:${contact.email}`} className={linkClass}>
+                                    {emailUser}@
+                                    <wbr />
+                                    {emailDomain}
+                                </a>
                             </li>
-                        ))}
-                        <li className="text-sm text-ink-soft">{appConfig.contact.schedule}</li>
-                        <li>
-                            <a href={`mailto:${appConfig.contact.email}`} className={linkClass}>
-                                {appConfig.contact.email}
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-
-                <Newsletter
-                    title="Newsletter"
-                    description="Diseños nuevos y promos, una vez al mes."
-                    stacked
-                    className="lg:max-w-sm"
-                />
+                        </ul>
+                    </nav>
+                </div>
             </div>
 
             <div className="border-t border-line">
@@ -98,10 +103,11 @@ export function Footer() {
                     )}
                 >
                     <p>
-                        © {new Date().getFullYear()} {appConfig.brand}. Todos los derechos reservados.
+                        © {new Date().getFullYear()} {general.brandName}. Todos los derechos
+                        reservados.
                     </p>
                     <p>
-                        {appConfig.contact.city} · {appConfig.shipping.productionCopy}
+                        {contact.city} · {productionCopy}
                     </p>
                 </div>
             </div>

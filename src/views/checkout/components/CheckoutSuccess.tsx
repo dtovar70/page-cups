@@ -1,9 +1,9 @@
 import { PartyPopper } from 'lucide-react'
 
 import { ButtonLink, Card, Sticker } from '@/components/ui'
-import { appConfig } from '@/configs/app.config'
 import { ROUTES } from '@/constants/route.constant'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { useSiteContent } from '@/utils/hooks/useSiteContent'
 
 export interface CheckoutSuccessProps {
     orderCode: string
@@ -12,6 +12,8 @@ export interface CheckoutSuccessProps {
 }
 
 export function CheckoutSuccess({ orderCode, email, total }: CheckoutSuccessProps) {
+    const { shipping } = useSiteContent()
+
     return (
         <Card padding="lg" elevation="lift" className="mx-auto max-w-2xl space-y-6 text-center">
             <div className="flex justify-center">
@@ -26,9 +28,8 @@ export function CheckoutSuccess({ orderCode, email, total }: CheckoutSuccessProp
             </h1>
 
             <p className="text-ink-soft">
-                Te enviamos la confirmación a <span className="font-semibold text-ink">{email}</span>.
-                {' '}
-                {appConfig.shipping.productionCopy}.
+                Te enviamos la confirmación a{' '}
+                <span className="font-semibold text-ink">{email}</span>. {shipping.productionCopy}.
             </p>
 
             <dl className="grid gap-4 rounded-3xl bg-blush-50 p-6 sm:grid-cols-2">

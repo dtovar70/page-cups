@@ -1,20 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router'
 
-import type { CategorySlug, Product, ProductTag } from '@/@types/product'
+import type { Product, ProductTag } from '@/@types/product'
 import { AddToCartButton } from '@/components/shared/AddToCartButton'
 import { PriceTag } from '@/components/shared/PriceTag'
-import { ProductIllustration } from '@/components/shared/ProductIllustration'
+import { ProductMedia } from '@/components/shared/ProductMedia'
+import { categorySurface } from '@/components/shared/illustration/artwork'
 import { Badge, Card, Rating, type BadgeProps } from '@/components/ui'
 import { productPath } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
+import { useCategory } from '@/views/catalog/hooks/useCategories'
 import { productDetailQueryOptions } from '@/views/product/hooks/useProduct'
-
-const SURFACE_BY_CATEGORY: Record<CategorySlug, string> = {
-    mugs: 'bg-blush-50',
-    tees: 'bg-sky-50',
-    keychains: 'bg-lilac-200/45',
-}
 
 const TAG_TONE: Record<ProductTag, NonNullable<BadgeProps['tone']>> = {
     nuevo: 'solid',
@@ -32,6 +28,8 @@ export interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
     const queryClient = useQueryClient()
     const defaultVariant = product.variants.at(0)
+    const accentColor = useCategory(product.category)?.colorHex
+    const surface = categorySurface(product.category, accentColor ?? product.colorHex)
 
     const prefetchDetail = () => {
         void queryClient.prefetchQuery(productDetailQueryOptions(product.slug))
@@ -48,8 +46,9 @@ export function ProductCard({ product }: ProductCardProps) {
             <div
                 className={cn(
                     'relative flex items-center justify-center px-6 py-6',
-                    SURFACE_BY_CATEGORY[product.category],
+                    surface.className,
                 )}
+                style={surface.style}
             >
                 <ul className="absolute top-4 left-4 flex flex-wrap gap-1.5">
                     {product.tags.slice(0, VISIBLE_TAGS).map((tag) => (
@@ -61,10 +60,13 @@ export function ProductCard({ product }: ProductCardProps) {
                     ))}
                 </ul>
 
-                <ProductIllustration
+                <ProductMedia
                     category={product.category}
                     color={product.colorHex}
                     printText={product.printText}
+                    accentColor={accentColor}
+                    image={product.images.at(0)}
+                    fallbackAlt={product.name}
                     size="md"
                     className="transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transform-none"
                 />

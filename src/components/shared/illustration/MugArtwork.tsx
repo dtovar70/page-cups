@@ -18,7 +18,13 @@ export function MugArtwork({ color, theme, printText }: ArtworkProps) {
                 strokeLinecap="round"
                 opacity={0.22}
             />
-            <path d={HANDLE_PATH} fill="none" stroke={color} strokeWidth={14} strokeLinecap="round" />
+            <path
+                d={HANDLE_PATH}
+                fill="none"
+                stroke={color}
+                strokeWidth={14}
+                strokeLinecap="round"
+            />
 
             <path
                 d={BODY_PATH}

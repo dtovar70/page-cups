@@ -33,6 +33,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'oferta', 'personalizable'],
         stock: 42,
         createdAt: '2025-11-04T10:00:00.000Z',
+        images: [],
     },
     {
         id: 'mug-002',
@@ -59,6 +60,7 @@ export const products: Product[] = [
         tags: ['nuevo', 'bestseller', 'personalizable'],
         stock: 23,
         createdAt: '2026-02-18T09:30:00.000Z',
+        images: [],
     },
     {
         id: 'mug-003',
@@ -96,6 +98,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'personalizable'],
         stock: 58,
         createdAt: '2025-09-12T14:15:00.000Z',
+        images: [],
     },
     {
         id: 'mug-004',
@@ -134,6 +137,7 @@ export const products: Product[] = [
         tags: ['oferta', 'personalizable'],
         stock: 34,
         createdAt: '2025-12-20T11:45:00.000Z',
+        images: [],
     },
     {
         id: 'mug-005',
@@ -161,6 +165,7 @@ export const products: Product[] = [
         tags: ['personalizable'],
         stock: 91,
         createdAt: '2025-07-30T08:20:00.000Z',
+        images: [],
     },
     {
         id: 'mug-006',
@@ -188,6 +193,7 @@ export const products: Product[] = [
         tags: ['nuevo', 'bestseller', 'personalizable'],
         stock: 17,
         createdAt: '2026-03-05T16:00:00.000Z',
+        images: [],
     },
 
     {
@@ -218,6 +224,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'personalizable'],
         stock: 65,
         createdAt: '2025-10-08T13:10:00.000Z',
+        images: [],
     },
     {
         id: 'tee-002',
@@ -246,6 +253,7 @@ export const products: Product[] = [
         tags: ['nuevo', 'oferta'],
         stock: 19,
         createdAt: '2026-04-11T10:40:00.000Z',
+        images: [],
     },
     {
         id: 'tee-003',
@@ -274,6 +282,7 @@ export const products: Product[] = [
         tags: ['personalizable'],
         stock: 120,
         createdAt: '2025-08-22T09:05:00.000Z',
+        images: [],
     },
     {
         id: 'tee-004',
@@ -301,6 +310,7 @@ export const products: Product[] = [
         tags: ['nuevo', 'personalizable'],
         stock: 38,
         createdAt: '2026-01-27T15:25:00.000Z',
+        images: [],
     },
     {
         id: 'tee-005',
@@ -329,6 +339,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'personalizable'],
         stock: 44,
         createdAt: '2025-11-30T12:00:00.000Z',
+        images: [],
     },
     {
         id: 'tee-006',
@@ -356,6 +367,7 @@ export const products: Product[] = [
         tags: ['oferta'],
         stock: 8,
         createdAt: '2025-06-14T17:30:00.000Z',
+        images: [],
     },
 
     {
@@ -389,6 +401,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'personalizable'],
         stock: 240,
         createdAt: '2025-09-01T08:00:00.000Z',
+        images: [],
     },
     {
         id: 'key-002',
@@ -425,6 +438,7 @@ export const products: Product[] = [
         tags: ['bestseller', 'personalizable'],
         stock: 132,
         createdAt: '2025-10-19T11:20:00.000Z',
+        images: [],
     },
     {
         id: 'key-003',
@@ -452,6 +466,7 @@ export const products: Product[] = [
         tags: ['nuevo', 'personalizable'],
         stock: 76,
         createdAt: '2026-02-02T09:50:00.000Z',
+        images: [],
     },
     {
         id: 'key-004',
@@ -479,6 +494,7 @@ export const products: Product[] = [
         tags: ['oferta', 'personalizable'],
         stock: 47,
         createdAt: '2025-12-06T14:35:00.000Z',
+        images: [],
     },
     {
         id: 'key-005',
@@ -505,6 +521,7 @@ export const products: Product[] = [
         tags: ['personalizable'],
         stock: 88,
         createdAt: '2025-07-15T10:10:00.000Z',
+        images: [],
     },
     {
         id: 'key-006',
@@ -537,5 +554,6 @@ export const products: Product[] = [
         tags: ['nuevo'],
         stock: 310,
         createdAt: '2026-03-21T08:45:00.000Z',
+        images: [],
     },
 ]

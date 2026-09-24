@@ -22,6 +22,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
                 <ProductIllustration
                     category={category.slug}
                     color={category.colorHex}
+                    accentColor={category.colorHex}
                     printText={category.name}
                     size="md"
                     className="transition-transform duration-300 group-hover:-rotate-3 motion-reduce:transform-none"

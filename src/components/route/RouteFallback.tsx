@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { PawTrailLoader } from '@/components/shared/PawTrailLoader'
 import { useGlobalLoadingActions } from '@/store/loadingStore'
@@ -9,6 +9,14 @@ import { cn } from '@/utils/cn'
  * instant instead of flashing a full-screen overlay.
  */
 const APPEAR_DELAY_MS = 180
+
+/**
+ * When one loader hands over to the next (the site-content gate to the first route chunk, or
+ * one route swap to another), the next one skips the delay: fading out and back in would
+ * flash the half-rendered page between them.
+ */
+const HANDOFF_WINDOW_MS = 150
+let lastVisibleLoaderEndedAt = Number.NEGATIVE_INFINITY
 
 export interface RouteFallbackProps {
     message?: string
@@ -21,7 +29,14 @@ export interface RouteFallbackProps {
  */
 export function RouteFallback({ message = 'Preparando todo…' }: RouteFallbackProps) {
     const { beginGlobal, endGlobal } = useGlobalLoadingActions()
-    const [isVisible, setIsVisible] = useState(false)
+    const [isVisible, setIsVisible] = useState(
+        () => performance.now() - lastVisibleLoaderEndedAt < HANDOFF_WINDOW_MS,
+    )
+    const isVisibleRef = useRef(isVisible)
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible
+    }, [isVisible])
 
     useEffect(() => {
         beginGlobal()
@@ -29,6 +44,7 @@ export function RouteFallback({ message = 'Preparando todo…' }: RouteFallbackP
 
         return () => {
             window.clearTimeout(timeout)
+            if (isVisibleRef.current) lastVisibleLoaderEndedAt = performance.now()
             endGlobal()
         }
     }, [beginGlobal, endGlobal])

@@ -1,23 +1,68 @@
-import {
-    fetchCategories,
-    fetchFeaturedProducts,
-    fetchProductBySlug,
-    fetchProducts,
-    fetchRelatedProducts,
-    fetchTestimonials,
-} from '@/mock/api/products.api'
+import type { Paginated, ProductQueryParams } from '@/@types/common'
+import type { Category, Product } from '@/@types/product'
+import { fetchTestimonials } from '@/mock/api/products.api'
+import { apiClient } from '@/services/ApiClient'
+import { isApiError, NotFoundError } from '@/services/errors'
+
+function encodeSlug(slug: string): string {
+    return encodeURIComponent(slug)
+}
+
+/** Maps an HTTP 404 to `NotFoundError`, which the product view renders as its 404 page. */
+async function withNotFound<T>(promise: Promise<T>, slug: string): Promise<T> {
+    try {
+        return await promise
+    } catch (error) {
+        if (isApiError(error, 404)) throw new NotFoundError('el producto', slug)
+        throw error
+    }
+}
+
+async function getProducts(params: ProductQueryParams = {}): Promise<Paginated<Product>> {
+    return apiClient.get<Paginated<Product>>('/products', {
+        query: {
+            category: params.category,
+            search: params.search?.trim(),
+            sort: params.sort,
+            minPrice: params.minPrice,
+            maxPrice: params.maxPrice,
+            tags: params.tags,
+            page: params.page,
+            pageSize: params.pageSize,
+        },
+    })
+}
+
+function getProductBySlug(slug: string): Promise<Product> {
+    return withNotFound(apiClient.get<Product>(`/products/${encodeSlug(slug)}`), slug)
+}
+
+function getFeaturedProducts(limit = 8): Promise<Product[]> {
+    return apiClient.get<Product[]>('/products/featured', { query: { limit } })
+}
+
+function getRelatedProducts(slug: string, limit = 4): Promise<Product[]> {
+    return withNotFound(
+        apiClient.get<Product[]>(`/products/${encodeSlug(slug)}/related`, { query: { limit } }),
+        slug,
+    )
+}
+
+function getCategories(): Promise<Category[]> {
+    return apiClient.get<Category[]>('/categories')
+}
 
 /**
- * Single seam between the views and the data source. Swapping the mock module for
- * an HTTP client only touches this file.
+ * Single seam between the views and the data source. Products and categories come from the
+ * API; testimonials still come from the mock module because the API has no such resource.
  */
 export const ProductService = {
-    getProducts: fetchProducts,
-    getProductBySlug: fetchProductBySlug,
-    getFeaturedProducts: fetchFeaturedProducts,
-    getRelatedProducts: fetchRelatedProducts,
-    getCategories: fetchCategories,
+    getProducts,
+    getProductBySlug,
+    getFeaturedProducts,
+    getRelatedProducts,
+    getCategories,
     getTestimonials: fetchTestimonials,
 } as const
 
-export { NotFoundError } from '@/mock/api/products.api'
+export { NotFoundError } from '@/services/errors'

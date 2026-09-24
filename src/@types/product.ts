@@ -1,4 +1,8 @@
-export type CategorySlug = 'mugs' | 'tees' | 'keychains'
+/**
+ * Categories are managed from the admin, so any slug the API returns is valid. The alias only
+ * documents intent where a string holds a category slug.
+ */
+export type CategorySlug = string
 
 export type ProductTag = 'nuevo' | 'bestseller' | 'oferta' | 'personalizable'
 
@@ -7,6 +11,12 @@ export interface ProductVariant {
     label: string
     priceDelta: number
     colorHex?: string
+}
+
+export interface ProductImage {
+    id: string
+    url: string
+    alt: string | null
 }
 
 export interface Product {
@@ -26,6 +36,8 @@ export interface Product {
     tags: ProductTag[]
     stock: number
     createdAt: string
+    /** Uploaded photos in display order; empty means the generated illustration is shown. */
+    images: ProductImage[]
 }
 
 export interface Category {
