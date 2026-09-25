@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ExternalLink, PackageOpen } from 'lucide-react'
-import { useLocation, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Alert, Button, ButtonLink, buttonVariants, Card, Skeleton } from '@/components/ui'
@@ -12,9 +12,12 @@ import { useAdminProduct, useUpdateProduct } from '@/views/admin/hooks/useAdminP
 import { BackToProducts } from '@/views/admin/products/components/BackToProducts'
 import { ProductForm } from '@/views/admin/products/components/ProductForm'
 import { ProductImagesManager } from '@/views/admin/products/components/ProductImagesManager'
+import type { ProductInput } from '@/@types/admin'
 import {
+    readProductsListUrl,
     toProductFormValues,
     type ProductCreatedState,
+    type ProductSavedState,
 } from '@/views/admin/products/schema/product.schema'
 
 function isCreatedState(state: unknown): state is ProductCreatedState {
@@ -24,9 +27,27 @@ function isCreatedState(state: unknown): state is ProductCreatedState {
 export function AdminProductEditView() {
     const { id = '' } = useParams()
     const location = useLocation()
+    const navigate = useNavigate()
     const product = useAdminProduct(id)
     const updateProduct = useUpdateProduct(id)
     const [showCreatedNotice, setShowCreatedNotice] = useState(() => isCreatedState(location.state))
+    // Read once: the list URL (with its search and page) the admin came from, if any.
+    const [listUrl] = useState(() => readProductsListUrl(location.state))
+
+    /**
+     * A successful save goes back to the list (same search and page), which shows the notice.
+     * Photos are not part of this form: they save on their own and never navigate.
+     */
+    const handleSubmit = async (input: ProductInput) => {
+        const saved = await updateProduct.mutateAsync(input)
+        await navigate(listUrl, {
+            replace: true,
+            state: {
+                savedNotice: `Guardamos «${saved.name}». La tienda ya muestra la versión nueva.`,
+            } satisfies ProductSavedState,
+        })
+        return saved
+    }
 
     if (product.isPending) {
         return (
@@ -43,7 +64,10 @@ export function AdminProductEditView() {
         const isMissing = isApiError(product.error, 404)
         return (
             <>
-                <AdminPageHeader eyebrow={<BackToProducts />} title="Editar producto" />
+                <AdminPageHeader
+                    eyebrow={<BackToProducts to={listUrl} />}
+                    title="Editar producto"
+                />
                 <EmptyState
                     title={isMissing ? 'No encontramos este producto' : 'No pudimos cargarlo'}
                     description={
@@ -71,7 +95,7 @@ export function AdminProductEditView() {
     return (
         <>
             <AdminPageHeader
-                eyebrow={<BackToProducts />}
+                eyebrow={<BackToProducts to={listUrl} />}
                 title={current.name}
                 description={current.isActive ? 'Visible en la tienda' : 'Oculto en la tienda'}
                 actions={
@@ -112,7 +136,7 @@ export function AdminProductEditView() {
                     key={current.id}
                     mode="edit"
                     initialValues={toProductFormValues(current)}
-                    onSubmit={(input) => updateProduct.mutateAsync(input)}
+                    onSubmit={handleSubmit}
                 />
             </div>
         </>

@@ -11,8 +11,10 @@ import { categoryPath, ROUTES } from '@/constants/route.constant'
 import { NotFoundError } from '@/services/ProductService'
 import { MAX_LINE_QUANTITY } from '@/store/cartStore'
 import { cn } from '@/utils/cn'
+import { hasVariablePrice, variantPrice } from '@/utils/productPrice'
 import { ProductDetailSkeleton } from '@/views/product/components/ProductDetailSkeleton'
 import { ProductGallery } from '@/views/product/components/ProductGallery'
+import { PersonalizationField } from '@/views/product/components/PersonalizationField'
 import { ProductMeta } from '@/views/product/components/ProductMeta'
 import { RelatedProducts } from '@/views/product/components/RelatedProducts'
 import { VariantPicker } from '@/views/product/components/VariantPicker'
@@ -30,6 +32,9 @@ export function ProductDetailView() {
     const { data: categories } = useCategories()
     const [chosenVariantId, setChosenVariantId] = useState<string | null>(null)
     const [quantity, setQuantity] = useState(1)
+    // Tied to the slug, so a related product opened from here starts empty.
+    const [draft, setDraft] = useState({ slug, text: '' })
+    const personalization = draft.slug === slug ? draft.text : ''
     const shipping = useShippingContent()
 
     if (error instanceof NotFoundError) return <NotFoundView />
@@ -63,9 +68,11 @@ export function ProductDetailView() {
 
     const selectedVariant =
         product.variants.find((variant) => variant.id === chosenVariantId) ?? product.variants.at(0)
-    const unitPrice = product.price + (selectedVariant?.priceDelta ?? 0)
+    const unitPrice = variantPrice(product, selectedVariant)
+    const isVariablePrice = hasVariablePrice(product)
     const maxQuantity = Math.max(1, Math.min(product.stock, MAX_LINE_QUANTITY))
     const safeQuantity = Math.min(quantity, maxQuantity)
+    const personalizable = product.tags.includes('personalizable')
 
     return (
         <div className={cn(CONTAINER, pageClass)}>
@@ -119,15 +126,37 @@ export function ProductDetailView() {
 
                     <Rating value={product.rating} reviewCount={product.reviewCount} size="lg" />
 
-                    <PriceTag price={unitPrice} compareAtPrice={product.compareAtPrice} size="lg" />
+                    <div>
+                        <PriceTag
+                            price={unitPrice}
+                            compareAtPrice={product.compareAtPrice}
+                            size="lg"
+                        />
+                        {isVariablePrice && selectedVariant ? (
+                            <p className="mt-1 text-xs text-ink-soft">
+                                Precio para «{selectedVariant.label}». Varía según la versión que
+                                elijas.
+                            </p>
+                        ) : null}
+                    </div>
 
                     <p className="text-ink-soft">{product.description}</p>
 
                     <VariantPicker
                         variants={product.variants}
+                        basePrice={product.price}
                         selectedVariantId={selectedVariant?.id}
                         onSelect={setChosenVariantId}
                     />
+
+                    {personalizable ? (
+                        <PersonalizationField
+                            productName={product.name}
+                            printText={product.printText}
+                            value={personalization}
+                            onChange={(text) => setDraft({ slug, text })}
+                        />
+                    ) : null}
 
                     <div className="flex flex-wrap items-center gap-3">
                         <QuantityStepper
@@ -141,6 +170,7 @@ export function ProductDetailView() {
                                 product={product}
                                 variantId={selectedVariant.id}
                                 quantity={safeQuantity}
+                                personalization={personalizable ? personalization : undefined}
                                 size="lg"
                                 label="Agregar al carrito"
                             />

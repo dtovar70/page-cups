@@ -10,6 +10,7 @@ import { getErrorMessage, isApiError } from '@/services/errors'
 import { toColorInputValue } from '@/utils/color'
 import { slugify } from '@/utils/slugify'
 import {
+    CATEGORY_DESCRIPTION_MAX_LENGTH,
     CATEGORY_SLUG_MAX_LENGTH,
     categoryFormSchema,
     EMPTY_CATEGORY_FORM,
@@ -191,6 +192,7 @@ export function CategoryForm(props: CategoryFormProps) {
                 optional
                 rows={3}
                 error={errors.description?.message}
+                maxLength={CATEGORY_DESCRIPTION_MAX_LENGTH}
                 {...register('description')}
             />
             <div className="flex items-start gap-3">

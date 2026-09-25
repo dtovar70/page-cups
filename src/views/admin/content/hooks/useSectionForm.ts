@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
     useForm,
     type DefaultValues,
     type FieldValues,
     type Resolver,
+    type UseFormRegister,
     type UseFormReturn,
 } from 'react-hook-form'
 
 import type { AdminContentSection } from '@/@types/admin'
 import type { ContentSection, SiteContent } from '@/@types/content'
 import { getErrorMessage } from '@/services/errors'
+import { schemaMaxLength } from '@/utils/schemaMaxLength'
 import {
     useResetContentSection,
     useUpdateContentSection,
@@ -64,10 +66,21 @@ export function useSectionForm<K extends ContentSection, F extends FieldValues>(
     const [serverError, setServerError] = useState<string | null>(null)
     const [isRestoreOpen, setIsRestoreOpen] = useState(false)
 
-    const form = useForm<F>({
+    const rawForm = useForm<F>({
         resolver: zodResolver(config.schema as never) as unknown as Resolver<F>,
         defaultValues: config.toForm(saved.value) as DefaultValues<F>,
     })
+    const { register: rawRegister } = rawForm
+    // Every field stops at the length its schema allows, so the limit is never a surprise on save.
+    const register = useCallback<UseFormRegister<F>>(
+        (name, options) => {
+            const maxLength = schemaMaxLength(config.schema, name)
+            const registration = rawRegister(name, options)
+            return maxLength === undefined ? registration : { ...registration, maxLength }
+        },
+        [config.schema, rawRegister],
+    )
+    const form: UseFormReturn<F> = { ...rawForm, register }
     const { isDirty } = form.formState
 
     useEffect(() => {

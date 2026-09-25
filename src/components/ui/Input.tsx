@@ -1,5 +1,6 @@
 import { useId, type ComponentPropsWithRef, type ReactNode } from 'react'
 
+import { CharacterCounter } from '@/components/ui/CharacterCounter'
 import {
     FIELD_BASE_CLASS,
     FIELD_ERROR_CLASS,
@@ -8,7 +9,12 @@ import {
     FIELD_MESSAGE_ERROR_CLASS,
 } from '@/components/ui/field.styles'
 import { OptionalMark } from '@/components/ui/OptionalMark'
+import { TEXT_INPUT_MAX_LENGTH } from '@/constants/ui.constant'
 import { cn } from '@/utils/cn'
+import { useCharacterCount } from '@/utils/hooks/useCharacterCount'
+
+/** Types that hold free text and therefore get `TEXT_INPUT_MAX_LENGTH` by default. */
+const TEXT_LIKE_TYPES = new Set(['text', 'email', 'search', 'tel', 'url'])
 
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'id'> {
     label: string
@@ -21,8 +27,14 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'id'> {
     leadingIcon?: ReactNode
     /** Interactive slot pinned to the right edge, e.g. a clear button. */
     trailingAction?: ReactNode
+    /** Always show the "12/100" counter (by default it appears near the limit). */
+    showCount?: boolean
 }
 
+/**
+ * Text-like inputs accept at most `TEXT_INPUT_MAX_LENGTH` characters unless `maxLength` says
+ * otherwise, and show a character counter once the value gets close to the limit.
+ */
 export function Input({
     label,
     hideLabel = false,
@@ -31,12 +43,32 @@ export function Input({
     optional = false,
     leadingIcon,
     trailingAction,
+    showCount = false,
     className,
+    type = 'text',
+    maxLength: maxLengthProp,
+    ref,
+    value,
+    onChange,
     ...rest
 }: InputProps) {
     const inputId = useId()
     const hintId = `${inputId}-hint`
     const errorId = `${inputId}-error`
+    const countId = `${inputId}-count`
+    const maxLength =
+        maxLengthProp ?? (TEXT_LIKE_TYPES.has(type) ? TEXT_INPUT_MAX_LENGTH : undefined)
+    const { bindElement, handleChange, count } = useCharacterCount<HTMLInputElement>({
+        ref,
+        value,
+        onChange,
+        maxLength,
+        alwaysShow: showCount,
+    })
+    const describedBy =
+        [error ? errorId : hint ? hintId : null, count ? countId : null]
+            .filter(Boolean)
+            .join(' ') || undefined
 
     return (
         <div className="flex w-full flex-col gap-1.5">
@@ -57,8 +89,10 @@ export function Input({
 
                 <input
                     id={inputId}
+                    type={type}
+                    maxLength={maxLength}
                     aria-invalid={error ? true : undefined}
-                    aria-describedby={error ? errorId : hint ? hintId : undefined}
+                    aria-describedby={describedBy}
                     className={cn(
                         FIELD_BASE_CLASS,
                         'h-11 rounded-full px-4',
@@ -67,7 +101,10 @@ export function Input({
                         error && FIELD_ERROR_CLASS,
                         className,
                     )}
+                    value={value}
                     {...rest}
+                    ref={bindElement}
+                    onChange={handleChange}
                 />
 
                 {trailingAction ? (
@@ -77,14 +114,19 @@ export function Input({
                 ) : null}
             </div>
 
-            {error ? (
-                <p id={errorId} role="alert" className={FIELD_MESSAGE_ERROR_CLASS}>
-                    {error}
-                </p>
-            ) : hint ? (
-                <p id={hintId} className={FIELD_HINT_CLASS}>
-                    {hint}
-                </p>
+            {error || hint || count ? (
+                <div className={cn(count && 'flex items-start justify-between gap-3')}>
+                    {error ? (
+                        <p id={errorId} role="alert" className={FIELD_MESSAGE_ERROR_CLASS}>
+                            {error}
+                        </p>
+                    ) : hint ? (
+                        <p id={hintId} className={FIELD_HINT_CLASS}>
+                            {hint}
+                        </p>
+                    ) : null}
+                    {count ? <CharacterCounter id={countId} count={count} /> : null}
+                </div>
             ) : null}
         </div>
     )

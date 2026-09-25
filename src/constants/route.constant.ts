@@ -7,6 +7,8 @@ export const ROUTES = {
     product: '/producto/:slug',
     cart: '/carrito',
     checkout: '/checkout',
+    order: '/pedido/:code',
+    myOrders: '/mis-pedidos',
     about: '/nosotros',
     contact: '/contacto',
     notFound: '*',
@@ -21,33 +23,53 @@ export type RoutePath = (typeof ROUTES)[RouteKey]
 export const ADMIN_ROUTES = {
     login: '/admin/login',
     root: '/admin',
+    orders: '/admin/pedidos',
+    orderDetail: '/admin/pedidos/:code',
+    exchangeRate: '/admin/tasa-bcv',
     products: '/admin/productos',
     productNew: '/admin/productos/nuevo',
     productEdit: '/admin/productos/:id',
     categories: '/admin/categorias',
     content: '/admin/contenido',
+    catalogs: '/admin/catalogos',
 } as const
+
+export function adminOrderPath(code: string): string {
+    return `/admin/pedidos/${encodeURIComponent(code)}`
+}
 
 export function adminProductPath(id: string): string {
     return `/admin/productos/${encodeURIComponent(id)}`
 }
 
 /**
- * Login URL that sends the user back to `next` (an admin path) once signed in. `reason`
- * explains why the session ended (e.g. `inactividad`) so the login page can say so.
+ * What the login page receives in navigation `state` (never in the query string, so the
+ * address bar always reads `/admin/login`): `next` is the admin path to return to once
+ * signed in; `reason` explains why the session ended (e.g. `inactividad`). History state
+ * survives a reload in most browsers but not every one, so both are best-effort.
  */
-export function adminLoginPath(next?: string, reason?: string): string {
-    const params = new URLSearchParams()
-    if (next) params.set('next', next)
-    if (reason) params.set('reason', reason)
-    const query = params.toString()
-    return query ? `${ADMIN_ROUTES.login}?${query}` : ADMIN_ROUTES.login
+export interface AdminLoginState {
+    next?: string
+    reason?: string
+}
+
+/** Navigation state for `navigate(ADMIN_ROUTES.login, { state })` and `<Navigate state>`. */
+export function adminLoginState(next?: string, reason?: string): AdminLoginState {
+    const state: AdminLoginState = {}
+    if (next) state.next = next
+    if (reason) state.reason = reason
+    return state
 }
 
 /** Sandboxes for reviewing UI in isolation. Wired into the router only in development. */
 export const DEV_ROUTES = {
     loaderPreview: '/dev/loader',
 } as const
+
+/** The customer's private order page: `/pedido/MR-000123?t=<token>`. */
+export function orderPath(code: string, token: string): string {
+    return `/pedido/${encodeURIComponent(code)}?t=${encodeURIComponent(token)}`
+}
 
 export function productPath(slug: string): string {
     return `/producto/${slug}`

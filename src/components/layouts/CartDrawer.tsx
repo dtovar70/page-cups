@@ -1,6 +1,7 @@
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { CartPersonalization } from '@/components/shared/CartPersonalization'
 import { ClearCartButton } from '@/components/shared/ClearCartButton'
 import { FreeShippingProgress } from '@/components/shared/FreeShippingProgress'
 import { ProductMedia } from '@/components/shared/ProductMedia'
@@ -96,6 +97,7 @@ export function CartDrawer() {
                                         {item.name}
                                     </Link>
                                     <p className="text-xs text-ink-soft">{item.variantLabel}</p>
+                                    <CartPersonalization item={item} size="sm" editable={false} />
 
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                         <QuantityStepper
@@ -114,7 +116,7 @@ export function CartDrawer() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    aria-label={`Quitar ${item.name} del carrito`}
+                                    aria-label={`Quitar ${item.name}${item.personalization ? ` (${item.personalization})` : ''} del carrito`}
                                     onClick={() => removeItem(item.lineId)}
                                     className="size-9 shrink-0 self-start px-0 text-ink-soft"
                                 >

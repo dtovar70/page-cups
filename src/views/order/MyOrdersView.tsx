@@ -1,0 +1,74 @@
+import { useState } from 'react'
+import { ClipboardList, Trash2 } from 'lucide-react'
+import { Link } from 'react-router'
+
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ButtonLink, Card, Tooltip } from '@/components/ui'
+import { CONTAINER } from '@/constants/layout.constant'
+import { orderPath, ROUTES } from '@/constants/route.constant'
+import { cn } from '@/utils/cn'
+import { formatCurrency } from '@/utils/formatCurrency'
+import { formatDateTime } from '@/utils/formatDate'
+import { forgetOrder, readRecentOrders, type RecentOrder } from '@/utils/recentOrders'
+
+/** Orders placed from this browser (their private links are kept in local storage). */
+export function MyOrdersView() {
+    const [orders, setOrders] = useState<RecentOrder[]>(() => readRecentOrders())
+
+    const remove = (code: string) => {
+        forgetOrder(code)
+        setOrders(readRecentOrders())
+    }
+
+    return (
+        <div className={cn(CONTAINER, 'space-y-8 py-12 lg:py-16')}>
+            <div className="space-y-2">
+                <h1 className="font-display text-4xl tracking-tight text-ink uppercase sm:text-5xl">
+                    Mis <span className="text-blush-500">pedidos</span>
+                </h1>
+                <p className="max-w-2xl text-ink-soft">
+                    Los pedidos que hiciste desde este dispositivo. Si cambias de navegador o de
+                    teléfono, usa el enlace de tu pedido para volver a verlo.
+                </p>
+            </div>
+
+            {orders.length === 0 ? (
+                <EmptyState
+                    title="Todavía no hay pedidos aquí"
+                    description="Cuando hagas un pedido, lo verás en esta lista para seguirlo cuando quieras."
+                    icon={<ClipboardList className="size-6" />}
+                    action={<ButtonLink to={ROUTES.catalog}>Explorar catálogo</ButtonLink>}
+                />
+            ) : (
+                <ul className="grid gap-3 sm:grid-cols-2">
+                    {orders.map((order) => (
+                        <li key={order.code}>
+                            <Card padding="sm" className="flex items-center gap-3">
+                                <Link
+                                    to={orderPath(order.code, order.token)}
+                                    className="min-w-0 flex-1 rounded-2xl px-2 py-1 transition hover:bg-blush-50"
+                                >
+                                    <p className="font-display text-lg text-ink">{order.code}</p>
+                                    <p className="text-sm text-ink-soft">
+                                        {formatDateTime(order.createdAt)} ·{' '}
+                                        {formatCurrency(order.totalUsd)}
+                                    </p>
+                                </Link>
+                                <Tooltip label="Quitar de la lista" placement="top" align="end">
+                                    <button
+                                        type="button"
+                                        onClick={() => remove(order.code)}
+                                        aria-label={`Quitar ${order.code} de la lista`}
+                                        className="flex size-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-blush-100 hover:text-blush-700"
+                                    >
+                                        <Trash2 aria-hidden="true" className="size-4" />
+                                    </button>
+                                </Tooltip>
+                            </Card>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    )
+}

@@ -15,6 +15,8 @@ export interface AddToCartButtonProps extends Pick<
     product: Product
     variantId: string
     quantity?: number
+    /** Text to print, for `personalizable` products (part of the cart line identity). */
+    personalization?: string
     label?: string
     /** Opening the drawer is the default success feedback; cards can opt out. */
     openDrawerOnAdd?: boolean
@@ -24,6 +26,7 @@ export function AddToCartButton({
     product,
     variantId,
     quantity = 1,
+    personalization,
     label = 'Agregar',
     openDrawerOnAdd = true,
     ...buttonProps
@@ -36,7 +39,7 @@ export function AddToCartButton({
     useEffect(() => () => clearTimeout(timeoutRef.current), [])
 
     const handleClick = () => {
-        addItem(product, variantId, quantity)
+        addItem(product, variantId, quantity, personalization)
         setIsConfirming(true)
         clearTimeout(timeoutRef.current)
         timeoutRef.current = setTimeout(() => setIsConfirming(false), CONFIRMATION_MS)

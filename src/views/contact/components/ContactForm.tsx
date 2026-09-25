@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 
 import { Button, Card, Input, Select, Textarea, type SelectOption } from '@/components/ui'
 import {
+    CONTACT_MESSAGE_MAX_LENGTH,
     contactSchema,
     CONTACT_TOPIC_LABELS,
     CONTACT_TOPICS,
@@ -86,6 +87,7 @@ export function ContactForm() {
                         rows={5}
                         hint="Cuéntanos la idea, la cantidad y para cuándo la necesitas."
                         error={errors.message?.message}
+                        maxLength={CONTACT_MESSAGE_MAX_LENGTH}
                         {...register('message')}
                     />
                 </fieldset>

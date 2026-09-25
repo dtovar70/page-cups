@@ -16,3 +16,7 @@ export { Sticker, type StickerProps } from '@/components/ui/Sticker'
 export { Switch, type SwitchProps } from '@/components/ui/Switch'
 export { Textarea, type TextareaProps } from '@/components/ui/Textarea'
 export { Tooltip, type TooltipProps } from '@/components/ui/Tooltip'
+export { Popover, type PopoverCloseReason, type PopoverProps } from '@/components/ui/Popover'
+// DateRangePicker is deliberately not re-exported here: it pulls react-day-picker and date-fns,
+// and anything in this barrel lands in the chunk every storefront page loads. Import it from
+// '@/components/ui/DateRangePicker'.

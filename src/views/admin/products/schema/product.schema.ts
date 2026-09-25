@@ -2,6 +2,11 @@ import { z } from 'zod'
 
 import type { AdminProduct, ProductInput } from '@/@types/admin'
 import type { ProductTag } from '@/@types/product'
+import { ADMIN_ROUTES } from '@/constants/route.constant'
+import {
+    TEXT_INPUT_MAX_LENGTH as MAX_TEXT,
+    TEXT_INPUT_MAX_MESSAGE as MAX_TEXT_MESSAGE,
+} from '@/constants/ui.constant'
 
 /** Mirrors the API's `CreateProductDto` rules so most mistakes never reach the server. */
 export const PRODUCT_TAGS = [
@@ -23,8 +28,42 @@ export interface ProductCreatedState {
     created: true
 }
 
-export const MAX_HIGHLIGHTS = 12
+/** Router state the list hands to the edit page: the list URL (search and page) to return to. */
+export interface ProductEditFromState {
+    from: string
+}
+
+/** Router state the edit page hands back to the list after a successful save. */
+export interface ProductSavedState {
+    savedNotice: string
+}
+
+/**
+ * The list URL the edit page returns to. Only the products list itself is accepted (with
+ * its query string), so the state can never send the admin anywhere else.
+ */
+export function readProductsListUrl(state: unknown): string {
+    if (typeof state === 'object' && state !== null && 'from' in state) {
+        const { from } = state as { from: unknown }
+        if (
+            typeof from === 'string' &&
+            (from === ADMIN_ROUTES.products || from.startsWith(`${ADMIN_ROUTES.products}?`))
+        ) {
+            return from
+        }
+    }
+    return ADMIN_ROUTES.products
+}
+
+export function readSavedNotice(state: unknown): string | null {
+    if (typeof state !== 'object' || state === null || !('savedNotice' in state)) return null
+    const { savedNotice } = state as { savedNotice: unknown }
+    return typeof savedNotice === 'string' && savedNotice ? savedNotice : null
+}
+
+export const MAX_HIGHLIGHTS = 6
 export const MAX_VARIANTS = 30
+export const PRODUCT_DESCRIPTION_MAX_LENGTH = 4000
 
 const MAX_PRICE = 99_999_999.99
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -50,7 +89,7 @@ export const productFormSchema = z
             .string()
             .trim()
             .min(1, 'Escribe el nombre del producto')
-            .max(120, 'Máximo 120 caracteres'),
+            .max(MAX_TEXT, MAX_TEXT_MESSAGE),
         slug: z
             .string()
             .trim()
@@ -68,8 +107,17 @@ export const productFormSchema = z
             .int('El stock debe ser un número entero')
             .min(0, 'No puede ser negativo'),
         printText: z.string().max(80, 'Máximo 80 caracteres'),
-        colorHex: z.string().trim().regex(HEX_COLOR_PATTERN, HEX_MESSAGE),
-        description: z.string().max(4000, 'Máximo 4000 caracteres'),
+        colorHex: z
+            .string()
+            .trim()
+            .max(MAX_TEXT, MAX_TEXT_MESSAGE)
+            .regex(HEX_COLOR_PATTERN, HEX_MESSAGE),
+        description: z
+            .string()
+            .max(
+                PRODUCT_DESCRIPTION_MAX_LENGTH,
+                `Máximo ${PRODUCT_DESCRIPTION_MAX_LENGTH} caracteres`,
+            ),
         highlights: z
             .array(
                 z.object({
@@ -77,7 +125,7 @@ export const productFormSchema = z
                         .string()
                         .trim()
                         .min(1, 'Escribe el detalle o elimínalo')
-                        .max(200, 'Máximo 200 caracteres'),
+                        .max(MAX_TEXT, MAX_TEXT_MESSAGE),
                 }),
             )
             .max(MAX_HIGHLIGHTS, `Máximo ${MAX_HIGHLIGHTS} detalles`),
@@ -94,6 +142,7 @@ export const productFormSchema = z
                     colorHex: z
                         .string()
                         .trim()
+                        .max(MAX_TEXT, MAX_TEXT_MESSAGE)
                         .refine(
                             (value) => value === '' || HEX_COLOR_PATTERN.test(value),
                             HEX_MESSAGE,

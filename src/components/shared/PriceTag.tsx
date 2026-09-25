@@ -32,14 +32,17 @@ const compareVariants = cva('text-ink-soft line-through', {
 export interface PriceTagProps extends VariantProps<typeof priceVariants> {
     price: number
     compareAtPrice?: number
+    /** Prefixes "Desde": `price` is the cheapest of several variant prices. */
+    isFromPrice?: boolean
     className?: string
 }
 
-export function PriceTag({ price, compareAtPrice, size, className }: PriceTagProps) {
+export function PriceTag({ price, compareAtPrice, isFromPrice, size, className }: PriceTagProps) {
     const hasDiscount = compareAtPrice !== undefined && compareAtPrice > price
 
     return (
         <p className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-0.5', className)}>
+            {isFromPrice ? <span className="text-xs font-medium text-ink-soft">Desde</span> : null}
             <span className={priceVariants({ size })}>{formatCurrency(price)}</span>
             {hasDiscount ? (
                 <span className={compareVariants({ size })}>

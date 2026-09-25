@@ -1,12 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
+import { useEffect } from 'react'
 
-import { Button, Input, Select, Textarea, type SelectOption } from '@/components/ui'
+import { Alert, Button, Input, Select, Textarea, type SelectOption } from '@/components/ui'
+import { isApiError } from '@/services/errors'
 import {
+    CHECKOUT_FIELDS,
+    CHECKOUT_NOTES_MAX_LENGTH,
+    CHECKOUT_PHONE_MAX_LENGTH,
     checkoutSchema,
     DELIVERY_METHOD_LABELS,
     DELIVERY_METHODS,
     type CheckoutValues,
+    type DeliveryMethod,
 } from '@/views/checkout/schema/checkout.schema'
 
 const DELIVERY_OPTIONS: SelectOption[] = DELIVERY_METHODS.map((method) => ({
@@ -15,13 +21,26 @@ const DELIVERY_OPTIONS: SelectOption[] = DELIVERY_METHODS.map((method) => ({
 }))
 
 export interface CheckoutFormProps {
+    /** Rejects with the API error; field errors are pinned here, the rest is up to the page. */
     onConfirm: (values: CheckoutValues) => Promise<void>
+    onDeliveryMethodChange?: (method: DeliveryMethod) => void
+    /** Blocks sending (e.g. no BCV rate): the button stays disabled. */
+    disabled?: boolean
+    /** Message for errors that are not about a field (shown above the button). */
+    formError?: string | null
 }
 
-export function CheckoutForm({ onConfirm }: CheckoutFormProps) {
+export function CheckoutForm({
+    onConfirm,
+    onDeliveryMethodChange,
+    disabled = false,
+    formError,
+}: CheckoutFormProps) {
     const {
         register,
         handleSubmit,
+        control,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CheckoutValues>({
         resolver: zodResolver(checkoutSchema),
@@ -36,8 +55,26 @@ export function CheckoutForm({ onConfirm }: CheckoutFormProps) {
         },
     })
 
+    const deliveryMethod = useWatch({ control, name: 'deliveryMethod' })
+    useEffect(() => {
+        onDeliveryMethodChange?.(deliveryMethod)
+    }, [deliveryMethod, onDeliveryMethodChange])
+
+    const submit = async (values: CheckoutValues) => {
+        try {
+            await onConfirm(values)
+        } catch (error) {
+            if (!isApiError(error, 400)) return
+            for (const detail of error.details) {
+                const field = CHECKOUT_FIELDS.find((name) => name === detail.field)
+                const message = detail.errors[0]
+                if (field && message) setError(field, { type: 'server', message })
+            }
+        }
+    }
+
     return (
-        <form onSubmit={handleSubmit(onConfirm)} noValidate className="space-y-6">
+        <form onSubmit={handleSubmit(submit)} noValidate className="space-y-6">
             <fieldset className="grid gap-5 sm:grid-cols-2" disabled={isSubmitting}>
                 <legend className="mb-3 font-display text-xl text-ink">Tus datos</legend>
 
@@ -58,6 +95,7 @@ export function CheckoutForm({ onConfirm }: CheckoutFormProps) {
                     label="Teléfono"
                     type="tel"
                     autoComplete="tel"
+                    maxLength={CHECKOUT_PHONE_MAX_LENGTH}
                     error={errors.phone?.message}
                     {...register('phone')}
                 />
@@ -89,16 +127,31 @@ export function CheckoutForm({ onConfirm }: CheckoutFormProps) {
                 <div className="sm:col-span-2">
                     <Textarea
                         label="Notas para el taller"
+                        optional
                         hint="Cuéntanos si hay un color, una fecha o un detalle que debamos cuidar."
                         error={errors.notes?.message}
+                        maxLength={CHECKOUT_NOTES_MAX_LENGTH}
                         {...register('notes')}
                     />
                 </div>
             </fieldset>
 
-            <Button type="submit" size="lg" fullWidth isLoading={isSubmitting}>
-                {isSubmitting ? 'Confirmando pedido…' : 'Confirmar pedido'}
-            </Button>
+            {formError ? <Alert>{formError}</Alert> : null}
+
+            <div className="space-y-2">
+                <Button
+                    type="submit"
+                    size="lg"
+                    fullWidth
+                    isLoading={isSubmitting}
+                    disabled={disabled || isSubmitting}
+                >
+                    {isSubmitting ? 'Creando tu pedido…' : 'Confirmar pedido'}
+                </Button>
+                <p className="text-center text-xs text-ink-soft">
+                    Después verás los datos de Pago Móvil y el monto exacto en bolívares.
+                </p>
+            </div>
         </form>
     )
 }

@@ -4,7 +4,7 @@ import type { ProductVariant } from '@/@types/product'
 import { formatCurrency } from '@/utils/formatCurrency'
 
 const optionVariants = cva(
-    'inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition duration-200 focus-within:ring-2 focus-within:ring-blush-400 focus-within:ring-offset-2',
+    'inline-flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition duration-200 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-blush-400 has-[input:focus-visible]:ring-offset-2',
     {
         variants: {
             isSelected: {
@@ -18,12 +18,20 @@ const optionVariants = cva(
 
 export interface VariantPickerProps {
     variants: ProductVariant[]
+    /** The product's base price; each option shows its own final price when they differ. */
+    basePrice: number
     selectedVariantId?: string
     onSelect: (variantId: string) => void
 }
 
-export function VariantPicker({ variants, selectedVariantId, onSelect }: VariantPickerProps) {
+export function VariantPicker({
+    variants,
+    basePrice,
+    selectedVariantId,
+    onSelect,
+}: VariantPickerProps) {
     if (variants.length === 0) return null
+    const showPrices = new Set(variants.map((variant) => variant.priceDelta)).size > 1
 
     return (
         <fieldset className="space-y-3">
@@ -44,9 +52,9 @@ export function VariantPicker({ variants, selectedVariantId, onSelect }: Variant
                             onChange={() => onSelect(variant.id)}
                         />
                         {variant.label}
-                        {variant.priceDelta > 0 ? (
+                        {showPrices ? (
                             <span className="text-xs text-ink-soft">
-                                +{formatCurrency(variant.priceDelta)}
+                                {formatCurrency(basePrice + variant.priceDelta)}
                             </span>
                         ) : null}
                     </label>

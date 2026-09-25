@@ -158,8 +158,10 @@ export function phoneHref(phone: string): string {
     return `tel:+${internationalDigits(phone)}`
 }
 
-export function whatsappUrl(phone: string): string {
-    return `https://wa.me/${internationalDigits(phone)}`
+/** wa.me link; `message` pre-fills the chat (e.g. the product name or the order code). */
+export function whatsappUrl(phone: string, message?: string): string {
+    const base = `https://wa.me/${internationalDigits(phone)}`
+    return message ? `${base}?text=${encodeURIComponent(message)}` : base
 }
 
 export interface SocialLink {

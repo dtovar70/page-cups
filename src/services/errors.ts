@@ -19,12 +19,23 @@ export interface ApiFieldError {
 export class ApiError extends Error {
     readonly status: number
     readonly details: ApiFieldError[]
+    /** Machine-readable reason some endpoints add, e.g. `EXCHANGE_RATE_UNAVAILABLE`. */
+    readonly code: string | undefined
+    /** The whole error body, for endpoints that send extra data (e.g. per-line problems). */
+    readonly payload: Record<string, unknown>
 
-    constructor(status: number, message: string, details: ApiFieldError[] = []) {
+    constructor(
+        status: number,
+        message: string,
+        details: ApiFieldError[] = [],
+        payload: Record<string, unknown> = {},
+    ) {
         super(message)
         this.name = 'ApiError'
         this.status = status
         this.details = details
+        this.payload = payload
+        this.code = typeof payload.code === 'string' ? payload.code : undefined
     }
 }
 

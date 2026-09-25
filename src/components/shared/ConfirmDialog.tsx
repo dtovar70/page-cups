@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
-import { Alert, Button } from '@/components/ui'
+import { Alert, Button, type ButtonProps } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 export interface ConfirmDialogProps {
     isOpen: boolean
@@ -11,7 +12,20 @@ export interface ConfirmDialogProps {
     isLoading?: boolean
     /** Shown inside the dialog, e.g. when the confirmed request failed. */
     error?: string
-    onConfirm: () => void
+    /** `danger` (default) for destructive actions, `primary` for positive ones. */
+    confirmVariant?: Extract<ButtonProps['variant'], 'danger' | 'primary'>
+    /** Keeps the confirm button disabled, e.g. until a required reason is typed. */
+    confirmDisabled?: boolean
+    /** Extra content between the description and the buttons, e.g. a reason field. */
+    children?: ReactNode
+    /**
+     * Replaces the confirm button (the cancel one stays), for dialogs whose actions are links
+     * or several buttons. `onConfirm` is then unused.
+     */
+    actions?: ReactNode
+    /** `lg` for dialogs that hold a whole form. */
+    size?: 'md' | 'lg'
+    onConfirm?: () => void
     onClose: () => void
 }
 
@@ -27,6 +41,11 @@ export function ConfirmDialog({
     cancelLabel = 'Cancelar',
     isLoading = false,
     error,
+    confirmVariant = 'danger',
+    confirmDisabled = false,
+    children,
+    actions,
+    size = 'md',
     onConfirm,
     onClose,
 }: ConfirmDialogProps) {
@@ -59,7 +78,10 @@ export function ConfirmDialog({
                 // A click on the element itself (not its content) is a click on the backdrop.
                 if (event.target === event.currentTarget) requestClose()
             }}
-            className="fixed inset-0 m-auto h-fit w-[calc(100%-2rem)] max-w-md rounded-3xl bg-cream p-0 text-ink shadow-lift backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
+            className={cn(
+                'fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto overscroll-contain rounded-3xl bg-cream p-0 text-ink shadow-lift backdrop:bg-ink/40 backdrop:backdrop-blur-sm',
+                size === 'lg' ? 'max-w-2xl' : 'max-w-md',
+            )}
         >
             {isOpen ? (
                 <div className="space-y-5 p-6">
@@ -74,15 +96,24 @@ export function ConfirmDialog({
                         ) : null}
                     </div>
 
+                    {children}
+
                     {error ? <Alert>{error}</Alert> : null}
 
                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                         <Button variant="secondary" onClick={requestClose} disabled={isLoading}>
                             {cancelLabel}
                         </Button>
-                        <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
-                            {confirmLabel}
-                        </Button>
+                        {actions ?? (
+                            <Button
+                                variant={confirmVariant}
+                                onClick={onConfirm}
+                                isLoading={isLoading}
+                                disabled={confirmDisabled || isLoading}
+                            >
+                                {confirmLabel}
+                            </Button>
+                        )}
                     </div>
                 </div>
             ) : null}

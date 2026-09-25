@@ -30,7 +30,7 @@ export const sessionTimeoutConfig = {
     storageKey: 'mr-admin-session-sync',
 } as const
 
-/** Why the admin was sent back to the login page (the `reason` query param). */
+/** Why the admin was sent back to the login page (`reason` in the login page's navigation state). */
 export type SessionEndReason = 'inactividad'
 
 export const SESSION_END_NOTICES: Record<SessionEndReason, string> = {

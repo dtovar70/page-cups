@@ -15,6 +15,9 @@ export const buttonVariants = cva(
                     'border-2 border-ink/10 bg-white text-ink hover:-translate-y-0.5 hover:border-ink/20',
                 ghost: 'text-ink hover:bg-blush-50',
                 'outline-sky': 'border-2 border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100',
+                /** WhatsApp green (darkened for white text contrast). */
+                whatsapp:
+                    'bg-[#128c7e] text-white shadow-soft hover:-translate-y-0.5 hover:bg-[#0b6f63]',
                 danger: 'bg-blush-700 text-white shadow-soft hover:-translate-y-0.5 hover:bg-blush-800',
             },
             size: {

@@ -26,6 +26,14 @@ export const CheckoutView = lazy(() =>
     import('@/views/checkout/CheckoutView').then((module) => ({ default: module.CheckoutView })),
 )
 
+export const OrderView = lazy(() =>
+    import('@/views/order/OrderView').then((module) => ({ default: module.OrderView })),
+)
+
+export const MyOrdersView = lazy(() =>
+    import('@/views/order/MyOrdersView').then((module) => ({ default: module.MyOrdersView })),
+)
+
 export const AboutView = lazy(() =>
     import('@/views/about/AboutView').then((module) => ({ default: module.AboutView })),
 )
@@ -78,5 +86,29 @@ export const AdminCategoriesView = lazy(() =>
 export const AdminContentView = lazy(() =>
     import('@/views/admin/content/AdminContentView').then((module) => ({
         default: module.AdminContentView,
+    })),
+)
+
+export const AdminCatalogsView = lazy(() =>
+    import('@/views/admin/catalogs/AdminCatalogsView').then((module) => ({
+        default: module.AdminCatalogsView,
+    })),
+)
+
+export const AdminOrdersView = lazy(() =>
+    import('@/views/admin/orders/AdminOrdersView').then((module) => ({
+        default: module.AdminOrdersView,
+    })),
+)
+
+export const AdminOrderDetailView = lazy(() =>
+    import('@/views/admin/orders/AdminOrderDetailView').then((module) => ({
+        default: module.AdminOrderDetailView,
+    })),
+)
+
+export const AdminExchangeRateView = lazy(() =>
+    import('@/views/admin/exchange-rate/AdminExchangeRateView').then((module) => ({
+        default: module.AdminExchangeRateView,
     })),
 )

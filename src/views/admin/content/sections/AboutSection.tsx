@@ -13,6 +13,7 @@ import { useSectionForm, type SectionFormProps } from '@/views/admin/content/hoo
 import {
     ABOUT_PLACEHOLDERS,
     ABOUT_VALUE_ICONS,
+    CONTENT_LIMITS,
     CONTENT_LIST_SIZES,
     SECTION_FORMS,
 } from '@/views/admin/content/schema/content.schema'
@@ -79,6 +80,7 @@ export function AboutSection(props: SectionFormProps<'about'>) {
                                 hideLabel
                                 rows={4}
                                 error={errors.paragraphs?.[index]?.value?.message}
+                                maxLength={CONTENT_LIMITS.paragraph}
                                 {...register(`paragraphs.${index}.value`)}
                             />
                         )}
@@ -140,6 +142,7 @@ export function AboutSection(props: SectionFormProps<'about'>) {
                                 label="Descripción"
                                 rows={2}
                                 error={errors.values?.[index]?.description?.message}
+                                maxLength={CONTENT_LIMITS.text}
                                 {...register(`values.${index}.description`)}
                             />
                         </>

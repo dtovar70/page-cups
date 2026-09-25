@@ -2,6 +2,7 @@ import { ShoppingBag } from 'lucide-react'
 
 import { ClearCartButton } from '@/components/shared/ClearCartButton'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { BsApproximation } from '@/components/shared/BsApproximation'
 import { FreeShippingProgress } from '@/components/shared/FreeShippingProgress'
 import { ButtonLink, Card } from '@/components/ui'
 import { CONTAINER } from '@/constants/layout.constant'
@@ -84,6 +85,7 @@ export function CartView() {
                                 </dd>
                             </div>
                         </dl>
+                        <BsApproximation usd={total} />
 
                         <div className="grid gap-2">
                             <ButtonLink to={ROUTES.checkout} fullWidth>

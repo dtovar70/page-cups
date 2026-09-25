@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { CartItem } from '@/@types/cart'
+import { CartPersonalization } from '@/components/shared/CartPersonalization'
 import { ProductMedia } from '@/components/shared/ProductMedia'
 import { Button, QuantityStepper } from '@/components/ui'
 import { productPath } from '@/constants/route.constant'
@@ -36,6 +37,7 @@ export function CartLine({ item }: CartLineProps) {
                 </h2>
                 <p className="text-sm text-ink-soft">{item.variantLabel}</p>
                 <p className="text-sm text-ink-soft">{formatCurrency(item.unitPrice)} c/u</p>
+                <CartPersonalization item={item} />
             </div>
 
             <div className="flex items-center justify-between gap-4 sm:justify-end">
@@ -52,7 +54,7 @@ export function CartLine({ item }: CartLineProps) {
                 <Button
                     variant="ghost"
                     size="sm"
-                    aria-label={`Quitar ${item.name} del carrito`}
+                    aria-label={`Quitar ${item.name}${item.personalization ? ` (${item.personalization})` : ''} del carrito`}
                     onClick={() => removeItem(item.lineId)}
                     className="size-9 px-0 text-ink-soft"
                 >

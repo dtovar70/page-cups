@@ -3,10 +3,15 @@ import { Link } from 'react-router'
 
 import { ADMIN_ROUTES } from '@/constants/route.constant'
 
-export function BackToProducts() {
+export interface BackToProductsProps {
+    /** The list URL to return to (keeps its search and page); defaults to the plain list. */
+    to?: string
+}
+
+export function BackToProducts({ to = ADMIN_ROUTES.products }: BackToProductsProps) {
     return (
         <Link
-            to={ADMIN_ROUTES.products}
+            to={to}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft transition hover:text-blush-600"
         >
             <ArrowLeft aria-hidden="true" className="size-4" />

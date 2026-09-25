@@ -141,13 +141,10 @@ export interface AboutContent {
 
 export interface ContactContent {
     email: string
-    /** Venezuelan number, "0412-5550134". Shown as "+58 412 555 0134". */
     phone: string
-    /** Mobile number for wa.me links, "0412-5550134". */
     whatsapp: string
     city: string
     schedule: string
-    /** Handles without "@"; empty hides the link. */
     instagram: string
     tiktok: string
 }
@@ -197,4 +194,15 @@ export interface SiteContent {
     contactPage: ContactPageContent
     shipping: ShippingContent
     payment: PaymentContent
+}
+
+/** Checkout needs every Pago Móvil detail (instructions are optional). */
+export function isPaymentConfigured(payment: PaymentContent): boolean {
+    return [
+        payment.bankCode,
+        payment.bankName,
+        payment.phone,
+        payment.idNumber,
+        payment.holderName,
+    ].every((value) => value.trim() !== '')
 }

@@ -7,7 +7,11 @@ import { SectionFormLayout } from '@/views/admin/content/components/SectionFormL
 import { SortableList } from '@/views/admin/content/components/SortableList'
 import { TitleField } from '@/views/admin/content/components/TitleField'
 import { useSectionForm, type SectionFormProps } from '@/views/admin/content/hooks/useSectionForm'
-import { CONTENT_LIST_SIZES, SECTION_FORMS } from '@/views/admin/content/schema/content.schema'
+import {
+    CONTENT_LIMITS,
+    CONTENT_LIST_SIZES,
+    SECTION_FORMS,
+} from '@/views/admin/content/schema/content.schema'
 import { useCategories } from '@/views/catalog/hooks/useCategories'
 
 export function HomeSection(props: SectionFormProps<'home'>) {
@@ -54,6 +58,7 @@ export function HomeSection(props: SectionFormProps<'home'>) {
                     label="Subtítulo"
                     rows={3}
                     error={errors.heroSubtitle?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('heroSubtitle')}
                 />
                 <FieldRow>
@@ -113,6 +118,7 @@ export function HomeSection(props: SectionFormProps<'home'>) {
                     rows={2}
                     hint={`Puedes usar {categorias}: se cambia por la cantidad de categorías en palabras (hoy «${categoriesPhrase}»), así se actualiza sola al crear o borrar una.`}
                     error={errors.categoriesDescription?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('categoriesDescription')}
                 />
             </FieldGroup>
@@ -141,6 +147,7 @@ export function HomeSection(props: SectionFormProps<'home'>) {
                     label="Descripción"
                     rows={2}
                     error={errors.featuredDescription?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('featuredDescription')}
                 />
             </FieldGroup>
@@ -185,6 +192,7 @@ export function HomeSection(props: SectionFormProps<'home'>) {
                                 label="Descripción del paso"
                                 rows={2}
                                 error={errors.steps?.[index]?.description?.message}
+                                maxLength={CONTENT_LIMITS.text}
                                 {...register(`steps.${index}.description`)}
                             />
                         </>
@@ -228,6 +236,7 @@ export function HomeSection(props: SectionFormProps<'home'>) {
                     label="Descripción"
                     rows={2}
                     error={errors.ctaDescription?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('ctaDescription')}
                 />
                 <FieldRow>

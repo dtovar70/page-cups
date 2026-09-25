@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { CircleAlert, CircleCheck, Info, X, type LucideIcon } from 'lucide-react'
 
@@ -70,8 +70,14 @@ export function Alert({
             {hasCountdown ? (
                 <span
                     aria-hidden="true"
+                    data-countdown=""
                     onAnimationEnd={onDismiss}
-                    style={{ animationDuration: `${autoDismissMs}ms` }}
+                    style={
+                        {
+                            animationDuration: `${autoDismissMs}ms`,
+                            '--countdown-duration': `${autoDismissMs}ms`,
+                        } as CSSProperties
+                    }
                     className={cn(
                         'absolute inset-x-0 bottom-0 h-1 origin-left animate-countdown',
                         'group-focus-within:[animation-play-state:paused] group-hover:[animation-play-state:paused]',

@@ -11,7 +11,7 @@ import {
 } from '@/views/catalog/hooks/useCatalogFilters'
 
 const chipVariants = cva(
-    'inline-flex cursor-pointer items-center rounded-full border-2 px-3.5 py-1.5 text-sm font-semibold transition duration-200 focus-within:ring-2 focus-within:ring-blush-400 focus-within:ring-offset-2',
+    'inline-flex cursor-pointer items-center rounded-full border-2 px-3.5 py-1.5 text-sm font-semibold transition duration-200 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-blush-400 has-[input:focus-visible]:ring-offset-2',
     {
         variants: {
             isSelected: {

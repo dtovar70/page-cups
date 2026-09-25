@@ -5,10 +5,15 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button, Input } from '@/components/ui'
+import { TEXT_INPUT_MAX_LENGTH, TEXT_INPUT_MAX_MESSAGE } from '@/constants/ui.constant'
 import { cn } from '@/utils/cn'
 
 const newsletterSchema = z.object({
-    email: z.email('Escribe un correo válido, por ejemplo hola@correo.com'),
+    email: z
+        .string()
+        .trim()
+        .max(TEXT_INPUT_MAX_LENGTH, TEXT_INPUT_MAX_MESSAGE)
+        .pipe(z.email('Escribe un correo válido, por ejemplo hola@correo.com')),
 })
 
 type NewsletterValues = z.infer<typeof newsletterSchema>

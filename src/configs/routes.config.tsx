@@ -8,9 +8,13 @@ import { ADMIN_ROUTES, DEV_ROUTES, ROUTES } from '@/constants/route.constant'
 import { LoaderPreviewView } from '@/views/others/LoaderPreviewView'
 import {
     AboutView,
+    AdminCatalogsView,
     AdminCategoriesView,
     AdminContentView,
+    AdminExchangeRateView,
     AdminLoginView,
+    AdminOrderDetailView,
+    AdminOrdersView,
     AdminProductCreateView,
     AdminProductEditView,
     AdminProductsView,
@@ -20,7 +24,9 @@ import {
     CheckoutView,
     ContactView,
     HomeView,
+    MyOrdersView,
     NotFoundView,
+    OrderView,
     ProductDetailView,
 } from '@/views'
 
@@ -49,6 +55,8 @@ export const routes: RouteObject[] = [
             { path: ROUTES.product, element: withSuspense(<ProductDetailView />) },
             { path: ROUTES.cart, element: withSuspense(<CartView />) },
             { path: ROUTES.checkout, element: withSuspense(<CheckoutView />) },
+            { path: ROUTES.order, element: withSuspense(<OrderView />) },
+            { path: ROUTES.myOrders, element: withSuspense(<MyOrdersView />) },
             { path: ROUTES.about, element: withSuspense(<AboutView />) },
             { path: ROUTES.contact, element: withSuspense(<ContactView />) },
             ...devRoutes,
@@ -69,13 +77,17 @@ export const routes: RouteObject[] = [
         element: withSuspense(<AdminShell />),
         errorElement: <RouteError />,
         children: [
-            { index: true, element: <Navigate to={ADMIN_ROUTES.products} replace /> },
+            { index: true, element: <Navigate to={ADMIN_ROUTES.orders} replace /> },
+            { path: ADMIN_ROUTES.orders, element: withSuspense(<AdminOrdersView />) },
+            { path: ADMIN_ROUTES.orderDetail, element: withSuspense(<AdminOrderDetailView />) },
+            { path: ADMIN_ROUTES.exchangeRate, element: withSuspense(<AdminExchangeRateView />) },
             { path: ADMIN_ROUTES.products, element: withSuspense(<AdminProductsView />) },
             { path: ADMIN_ROUTES.productNew, element: withSuspense(<AdminProductCreateView />) },
             { path: ADMIN_ROUTES.productEdit, element: withSuspense(<AdminProductEditView />) },
             { path: ADMIN_ROUTES.categories, element: withSuspense(<AdminCategoriesView />) },
             { path: ADMIN_ROUTES.content, element: withSuspense(<AdminContentView />) },
-            { path: '*', element: <Navigate to={ADMIN_ROUTES.products} replace /> },
+            { path: ADMIN_ROUTES.catalogs, element: withSuspense(<AdminCatalogsView />) },
+            { path: '*', element: <Navigate to={ADMIN_ROUTES.orders} replace /> },
         ],
     },
 ]

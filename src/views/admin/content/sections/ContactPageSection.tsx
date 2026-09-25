@@ -10,6 +10,7 @@ import { SortableList } from '@/views/admin/content/components/SortableList'
 import { TitleField } from '@/views/admin/content/components/TitleField'
 import { useSectionForm, type SectionFormProps } from '@/views/admin/content/hooks/useSectionForm'
 import {
+    CONTENT_LIMITS,
     CONTENT_LIST_SIZES,
     FAQ_PLACEHOLDERS,
     SECTION_FORMS,
@@ -41,6 +42,7 @@ export function ContactPageSection(props: SectionFormProps<'contactPage'>) {
                     label="Introducción"
                     rows={2}
                     error={errors.intro?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('intro')}
                 />
             </FieldGroup>
@@ -82,6 +84,7 @@ export function ContactPageSection(props: SectionFormProps<'contactPage'>) {
                                 label="Respuesta"
                                 rows={3}
                                 error={errors.faq?.[index]?.answer?.message}
+                                maxLength={CONTENT_LIMITS.paragraph}
                                 {...register(`faq.${index}.answer`)}
                             />
                         </>

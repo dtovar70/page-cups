@@ -1,26 +1,44 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LogIn } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import { RouteFallback } from '@/components/route/RouteFallback'
 import { Alert, Button, Card, Input } from '@/components/ui'
 import { appConfig } from '@/configs/app.config'
 import { isSessionEndReason, SESSION_END_NOTICES } from '@/configs/session.config'
-import { ADMIN_ROUTES } from '@/constants/route.constant'
+import { ADMIN_ROUTES, adminLoginState } from '@/constants/route.constant'
+import { NOTICE_DISMISS_MS } from '@/constants/ui.constant'
 import { getErrorMessage, isApiError } from '@/services/errors'
 import { useSessionStore } from '@/store/sessionStore'
 import { useSiteContent } from '@/utils/hooks/useSiteContent'
-import { loginSchema, type LoginValues } from '@/views/admin/auth/schema/login.schema'
+import {
+    LOGIN_PASSWORD_MAX_LENGTH,
+    loginSchema,
+    type LoginValues,
+} from '@/views/admin/auth/schema/login.schema'
 import { useLogin, useSession } from '@/views/admin/hooks/useSession'
 
-/** Only admin paths are honored, so `?next=` can never bounce the user off-site. */
-function resolveNext(next: string | null): string {
+/**
+ * Only admin paths are honored (never the login page itself), so `next` can never bounce
+ * the user off-site or into a loop. Anything else falls back to the orders page.
+ */
+function resolveNext(next: string | null | undefined): string {
     if (!next || !next.startsWith(`${ADMIN_ROUTES.root}/`) || next.startsWith('//')) {
-        return ADMIN_ROUTES.products
+        return ADMIN_ROUTES.orders
     }
-    return next.startsWith(ADMIN_ROUTES.login) ? ADMIN_ROUTES.products : next
+    return next.startsWith(ADMIN_ROUTES.login) ? ADMIN_ROUTES.orders : next
+}
+
+/** Navigation state is untyped (`unknown`): read only the string fields we expect. */
+function readLoginState(state: unknown): { next: string | null; reason: string | null } {
+    if (typeof state !== 'object' || state === null) return { next: null, reason: null }
+    const { next, reason } = state as Record<string, unknown>
+    return {
+        next: typeof next === 'string' ? next : null,
+        reason: typeof reason === 'string' ? reason : null,
+    }
 }
 
 function loginErrorMessage(error: unknown): string {
@@ -32,14 +50,20 @@ function loginErrorMessage(error: unknown): string {
 
 export function AdminLoginView() {
     const { general } = useSiteContent()
-    const [searchParams, setSearchParams] = useSearchParams()
+    const location = useLocation()
+    const [searchParams] = useSearchParams()
     const navigate = useNavigate()
-    const next = resolveNext(searchParams.get('next'))
-    const endReason = searchParams.get('reason')
+    const fromState = readLoginState(location.state)
+    // Old links and bookmarks may still carry `?next=` / `?reason=`: honor them this once.
+    const hasLegacyQuery = searchParams.has('next') || searchParams.has('reason')
+    const next = resolveNext(fromState.next ?? searchParams.get('next'))
+    const endReason = fromState.reason ?? searchParams.get('reason')
     const endNotice = isSessionEndReason(endReason) ? SESSION_END_NOTICES[endReason] : null
     const setEndReason = useSessionStore((state) => state.setEndReason)
     const { data: user, isPending: isCheckingSession } = useSession()
     const login = useLogin()
+    /** Counts submits, so a repeated error remounts its alert with a fresh countdown. */
+    const [attempt, setAttempt] = useState(0)
 
     const {
         register,
@@ -50,27 +74,36 @@ export function AdminLoginView() {
         defaultValues: { email: '', password: '' },
     })
 
-    // The reason already travelled in the URL; forget it so a later redirect starts clean.
+    // The reason already travelled in the navigation state; forget it so a later redirect
+    // starts clean.
     useEffect(() => {
         setEndReason(null)
     }, [setEndReason])
 
+    // The address bar always reads a plain `/admin/login`: legacy query params move into
+    // the navigation state and the URL is replaced with the clean one.
+    const legacyReason = hasLegacyQuery && isSessionEndReason(endReason) ? endReason : undefined
+    useEffect(() => {
+        if (!hasLegacyQuery) return
+        void navigate(ADMIN_ROUTES.login, {
+            replace: true,
+            state: adminLoginState(next, legacyReason),
+        })
+    }, [hasLegacyQuery, navigate, next, legacyReason])
+
     /** Hides the notice but keeps `next`, so logging in still returns the admin there. */
     const dismissNotice = () => {
-        setSearchParams(
-            (params) => {
-                params.delete('reason')
-                return params
-            },
-            { replace: true },
-        )
+        void navigate(ADMIN_ROUTES.login, { replace: true, state: adminLoginState(next) })
     }
 
     const onSubmit = handleSubmit((values) => {
+        setAttempt((count) => count + 1)
         login.mutate(values, {
             onSuccess: () => void navigate(next, { replace: true }),
         })
     })
+
+    const errorMessage = login.isError ? loginErrorMessage(login.error) : null
 
     if (isCheckingSession) return <RouteFallback message="Verificando tu sesión…" />
     if (user && !login.isPending) return <Navigate to={next} replace />
@@ -105,11 +138,25 @@ export function AdminLoginView() {
 
                 <form onSubmit={onSubmit} noValidate className="space-y-5">
                     {endNotice ? (
-                        <Alert tone="info" onDismiss={dismissNotice}>
+                        <Alert
+                            tone="info"
+                            autoDismissMs={NOTICE_DISMISS_MS}
+                            onDismiss={dismissNotice}
+                        >
                             {endNotice}
                         </Alert>
                     ) : null}
-                    {login.isError ? <Alert>{loginErrorMessage(login.error)}</Alert> : null}
+                    {errorMessage ? (
+                        // Like the success notices: it drains away, pauses on hover and can be
+                        // closed; clearing the mutation error is what removes it.
+                        <Alert
+                            key={`${attempt}:${errorMessage}`}
+                            autoDismissMs={NOTICE_DISMISS_MS}
+                            onDismiss={login.reset}
+                        >
+                            {errorMessage}
+                        </Alert>
+                    ) : null}
 
                     <fieldset className="space-y-5" disabled={login.isPending}>
                         <legend className="sr-only">Inicia sesión</legend>
@@ -125,6 +172,7 @@ export function AdminLoginView() {
                             label="Contraseña"
                             type="password"
                             autoComplete="current-password"
+                            maxLength={LOGIN_PASSWORD_MAX_LENGTH}
                             error={errors.password?.message}
                             {...register('password')}
                         />

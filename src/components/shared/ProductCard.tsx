@@ -9,6 +9,7 @@ import { categorySurface } from '@/components/shared/illustration/artwork'
 import { Badge, Card, Rating, type BadgeProps } from '@/components/ui'
 import { productPath } from '@/constants/route.constant'
 import { cn } from '@/utils/cn'
+import { priceRange } from '@/utils/productPrice'
 import { useCategory } from '@/views/catalog/hooks/useCategories'
 import { productDetailQueryOptions } from '@/views/product/hooks/useProduct'
 
@@ -28,6 +29,7 @@ export interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
     const queryClient = useQueryClient()
     const defaultVariant = product.variants.at(0)
+    const { min: fromPrice, max: toPrice } = priceRange(product)
     const accentColor = useCategory(product.category)?.colorHex
     const surface = categorySurface(product.category, accentColor ?? product.colorHex)
 
@@ -86,7 +88,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 <div className="mt-auto flex items-end justify-between gap-3 pt-3">
                     <PriceTag
-                        price={product.price}
+                        price={fromPrice}
+                        isFromPrice={fromPrice !== toPrice}
                         compareAtPrice={product.compareAtPrice}
                         className="min-w-0"
                     />

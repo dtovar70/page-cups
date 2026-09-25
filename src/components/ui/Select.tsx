@@ -40,6 +40,13 @@ const TYPEAHEAD_RESET_MS = 600
 /** Panel height plus its gap; below this the list flips above the trigger instead. */
 const PANEL_CLEARANCE_PX = 264
 
+/**
+ * The list grows past a narrow trigger to fit its longest option, up to 22rem and never past
+ * the viewport (keeping this gutter on each side). Longer labels still truncate.
+ */
+const PANEL_MAX_WIDTH = 'min(22rem, calc(100vw - 2rem))'
+const VIEWPORT_GUTTER_PX = 16
+
 const optionVariants = cva(
     'flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition duration-150',
     {
@@ -108,7 +115,7 @@ export function Select({
     const typeahead = useRef({ query: '', timer: 0 })
 
     const [isOpen, setIsOpen] = useState(false)
-    const [panel, setPanel] = useState({ dropUp: false, width: 0 })
+    const [panel, setPanel] = useState({ dropUp: false, width: 0, left: 0 })
     const [activeIndex, setActiveIndex] = useState(-1)
     const [selectedValue, setSelectedValue] = useState(() => {
         if (rest.value !== undefined) return String(rest.value)
@@ -241,17 +248,28 @@ export function Select({
     /*
      * Measured rather than stretched: callers size the control through `className`, so the
      * containing block is wider than the trigger and `inset-x-0` would hang the panel past it.
-     * The same measurement decides the direction, since a field near the fold would otherwise
-     * drop its list off-screen.
+     * The list is at least as wide as the trigger and grows to fit its options (up to
+     * `PANEL_MAX_WIDTH`), moving left when it would cross the viewport's right edge. The same
+     * measurement decides the direction, since a field near the fold would otherwise drop its
+     * list off-screen.
      */
     useLayoutEffect(() => {
         if (!isOpen) return
         const rect = triggerRef.current?.getBoundingClientRect()
         if (!rect) return
         const spaceBelow = window.innerHeight - rect.bottom
+        // Rendered at `max-content` (capped), so this is the width its options ask for.
+        const listWidth = Math.max(rect.width, listRef.current?.offsetWidth ?? 0)
+        // Aligned with the trigger, shifted left only as far as needed to stay on screen.
+        const viewportLeft = Math.max(
+            VIEWPORT_GUTTER_PX,
+            Math.min(rect.left, window.innerWidth - VIEWPORT_GUTTER_PX - listWidth),
+        )
+        const containerLeft = listRef.current?.offsetParent?.getBoundingClientRect().left ?? 0
         setPanel({
             dropUp: spaceBelow < PANEL_CLEARANCE_PX && rect.top > spaceBelow,
             width: rect.width,
+            left: viewportLeft - containerLeft,
         })
     }, [isOpen])
 
@@ -383,9 +401,13 @@ export function Select({
                         aria-labelledby={labelId}
                         /* Keep the press from pulling focus off the trigger that drives the keys. */
                         onMouseDown={(event) => event.preventDefault()}
-                        style={{ width: panel.width || undefined }}
+                        style={{
+                            left: panel.left,
+                            minWidth: panel.width || undefined,
+                            maxWidth: PANEL_MAX_WIDTH,
+                        }}
                         className={cn(
-                            'absolute left-0 z-30 max-h-60 w-full space-y-0.5 overflow-y-auto overscroll-contain',
+                            'absolute z-30 max-h-60 w-max space-y-0.5 overflow-y-auto overscroll-contain',
                             'animate-select-pop rounded-2xl border-2 border-line bg-white p-1.5 shadow-lift',
                             panel.dropUp
                                 ? 'bottom-full mb-2 origin-bottom'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PackageOpen, Plus, Search, X } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import type { AdminProduct } from '@/@types/admin'
 import type { CategorySlug } from '@/@types/product'
@@ -9,9 +9,9 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ProductMedia } from '@/components/shared/ProductMedia'
 import { Alert, Button, ButtonLink, Card, Input, Skeleton, Spinner, Switch } from '@/components/ui'
 import { ADMIN_ROUTES, adminProductPath } from '@/constants/route.constant'
+import { NOTICE_DISMISS_MS } from '@/constants/ui.constant'
 import { getErrorMessage } from '@/services/errors'
 import { cn } from '@/utils/cn'
-import { formatCurrency } from '@/utils/formatCurrency'
 import { useDebouncedValue } from '@/utils/hooks/useDebouncedValue'
 import { CatalogPagination } from '@/views/catalog/components/CatalogPagination'
 import { AdminPageHeader } from '@/views/admin/components/AdminPageHeader'
@@ -22,7 +22,12 @@ import {
     useSetProductActive,
 } from '@/views/admin/hooks/useAdminProducts'
 import { useSession } from '@/views/admin/hooks/useSession'
+import { AdminPriceCell } from '@/views/admin/products/components/AdminPriceCell'
 import { ProductRowActions } from '@/views/admin/products/components/ProductRowActions'
+import {
+    readSavedNotice,
+    type ProductEditFromState,
+} from '@/views/admin/products/schema/product.schema'
 
 const PAGE_SIZE = 12
 const SEARCH_DEBOUNCE_MS = 350
@@ -66,6 +71,22 @@ export function AdminProductsView() {
     const setActive = useSetProductActive()
     const deleteProduct = useDeleteProduct()
     const [pendingDelete, setPendingDelete] = useState<AdminProduct | null>(null)
+    const location = useLocation()
+    const navigate = useNavigate()
+    // Edit links carry this list URL, so a save returns to the same search and page.
+    const editState: ProductEditFromState = { from: `${location.pathname}${location.search}` }
+
+    // "Guardamos «…»" from the edit page. Kept in local state and dropped from the history
+    // entry right away, so a reload (or coming back later) does not show it again.
+    const [savedNotice, setSavedNotice] = useState(() => readSavedNotice(location.state))
+    const hasSavedNoticeState = readSavedNotice(location.state) !== null
+    useEffect(() => {
+        if (!hasSavedNoticeState) return
+        void navigate(
+            { pathname: location.pathname, search: location.search },
+            { replace: true, state: null },
+        )
+    }, [hasSavedNoticeState, location.pathname, location.search, navigate])
 
     // The URL is the source of truth, so a reload or "back" keeps the search and the page.
     useEffect(() => {
@@ -167,6 +188,18 @@ export function AdminProductsView() {
                 ) : null}
             </div>
 
+            {savedNotice ? (
+                <Alert
+                    key={savedNotice}
+                    tone="success"
+                    className="mb-6"
+                    autoDismissMs={NOTICE_DISMISS_MS}
+                    onDismiss={() => setSavedNotice(null)}
+                >
+                    {savedNotice}
+                </Alert>
+            ) : null}
+
             {setActive.isError ? (
                 <Alert className="mb-6">
                     No pudimos cambiar la visibilidad: {getErrorMessage(setActive.error)}
@@ -228,8 +261,8 @@ export function AdminProductsView() {
                             <table className="w-full min-w-[44rem] table-fixed text-sm">
                                 <colgroup>
                                     <col />
-                                    <col className="w-32" />
-                                    <col className="w-24" />
+                                    <col className="w-28" />
+                                    <col className="w-36" />
                                     <col className="w-20" />
                                     <col className="w-24" />
                                     <col className="w-26" />
@@ -242,13 +275,22 @@ export function AdminProductsView() {
                                         <th scope="col" className={headerCellClass}>
                                             Categoría
                                         </th>
-                                        <th scope="col" className={`${headerCellClass} text-right`}>
+                                        <th
+                                            scope="col"
+                                            className={cn(headerCellClass, 'text-center')}
+                                        >
                                             Precio
                                         </th>
-                                        <th scope="col" className={`${headerCellClass} text-right`}>
+                                        <th
+                                            scope="col"
+                                            className={cn(headerCellClass, 'text-center')}
+                                        >
                                             Stock
                                         </th>
-                                        <th scope="col" className={headerCellClass}>
+                                        <th
+                                            scope="col"
+                                            className={cn(headerCellClass, 'text-center')}
+                                        >
                                             Visible
                                         </th>
                                         <th
@@ -257,7 +299,7 @@ export function AdminProductsView() {
                                                 headerCellClass,
                                                 actionsCellClass,
                                                 // Same tint as the translucent header row, but opaque.
-                                                'bg-linear-to-r from-blush-50/60 to-blush-50/60 text-right',
+                                                'bg-linear-to-r from-blush-50/60 to-blush-50/60 text-center',
                                             )}
                                         >
                                             Acciones
@@ -276,6 +318,7 @@ export function AdminProductsView() {
                                                     <div className="min-w-0">
                                                         <Link
                                                             to={adminProductPath(product.id)}
+                                                            state={editState}
                                                             className="line-clamp-2 font-display text-base leading-snug break-words text-ink hover:text-blush-600"
                                                         >
                                                             {product.name}
@@ -292,28 +335,32 @@ export function AdminProductsView() {
                                             <td className={`${cellClass} truncate text-ink-soft`}>
                                                 {categoryName(product.category)}
                                             </td>
-                                            <td className={`${cellClass} text-right font-semibold`}>
-                                                {formatCurrency(product.price)}
+                                            <td className={cellClass}>
+                                                <AdminPriceCell product={product} align="center" />
                                             </td>
                                             <td
-                                                className={`${cellClass} text-right tabular-nums ${product.stock === 0 ? 'font-semibold text-blush-700' : ''}`}
+                                                className={`${cellClass} text-center tabular-nums ${product.stock === 0 ? 'font-semibold text-blush-700' : ''}`}
                                             >
                                                 {product.stock}
                                             </td>
                                             <td className={cellClass}>
-                                                <Switch
-                                                    checked={product.isActive}
-                                                    disabled={isToggling(product.id)}
-                                                    onChange={(checked) =>
-                                                        toggleActive(product, checked)
-                                                    }
-                                                    label={`Visible en la tienda: ${product.name}`}
-                                                />
+                                                <div className="flex justify-center">
+                                                    <Switch
+                                                        checked={product.isActive}
+                                                        disabled={isToggling(product.id)}
+                                                        onChange={(checked) =>
+                                                            toggleActive(product, checked)
+                                                        }
+                                                        label={`Visible en la tienda: ${product.name}`}
+                                                    />
+                                                </div>
                                             </td>
                                             <td className={`${cellClass} ${actionsCellClass}`}>
                                                 <ProductRowActions
                                                     product={product}
                                                     onDelete={openDelete}
+                                                    editState={editState}
+                                                    className="justify-center"
                                                 />
                                             </td>
                                         </tr>
@@ -333,6 +380,7 @@ export function AdminProductsView() {
                                         <div className="min-w-0 flex-1">
                                             <Link
                                                 to={adminProductPath(product.id)}
+                                                state={editState}
                                                 className="font-display text-base leading-snug break-words text-ink"
                                             >
                                                 {product.name}
@@ -341,13 +389,14 @@ export function AdminProductsView() {
                                                 {categoryName(product.category)} · Stock{' '}
                                                 {product.stock}
                                             </p>
-                                            <p className="text-sm font-semibold text-ink">
-                                                {formatCurrency(product.price)}
-                                            </p>
+                                            <div className="mt-1 text-sm">
+                                                <AdminPriceCell product={product} />
+                                            </div>
                                         </div>
                                         <ProductRowActions
                                             product={product}
                                             onDelete={openDelete}
+                                            editState={editState}
                                         />
                                     </div>
                                     <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-3">

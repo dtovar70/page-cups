@@ -1,5 +1,6 @@
 import type { AdminProductQueryParams } from '@/@types/admin'
 import type { ProductQueryParams } from '@/@types/common'
+import type { AdminOrderQueryParams } from '@/@types/order'
 
 /**
  * Hierarchical key factory: every list/detail key starts with its parent key so a
@@ -25,6 +26,19 @@ export const queryKeys = {
     },
     /** Editable site content (`GET /content`), loaded once at start-up. */
     content: ['content'] as const,
+    /** Business catalogs kept in the API's database, loaded once and rarely refreshed. */
+    catalogs: {
+        all: ['catalogs'] as const,
+        orderStatuses: () => [...queryKeys.catalogs.all, 'order-statuses'] as const,
+        banks: () => [...queryKeys.catalogs.all, 'banks'] as const,
+    },
+    /** Current BCV rate for the approximate bolívar amounts (`GET /exchange-rate/current`). */
+    exchangeRate: ['exchange-rate'] as const,
+    /** A customer's order page (`GET /orders/:code?t=`). The token is not part of the key. */
+    orders: {
+        all: ['orders'] as const,
+        detail: (code: string) => [...queryKeys.orders.all, code] as const,
+    },
     /** Current admin session (`GET /auth/me`); `null` data means logged out. */
     session: ['session'] as const,
     /** Everything behind the admin login, so logging out can drop it in one call. */
@@ -39,5 +53,17 @@ export const queryKeys = {
         },
         categories: () => [...queryKeys.admin.all, 'categories'] as const,
         content: () => [...queryKeys.admin.all, 'content'] as const,
+        orders: {
+            all: () => [...queryKeys.admin.all, 'orders'] as const,
+            lists: () => [...queryKeys.admin.orders.all(), 'list'] as const,
+            list: (params: AdminOrderQueryParams) =>
+                [...queryKeys.admin.orders.lists(), params] as const,
+            detail: (code: string) => [...queryKeys.admin.orders.all(), 'detail', code] as const,
+            summary: () => [...queryKeys.admin.orders.all(), 'summary'] as const,
+        },
+        exchangeRate: () => [...queryKeys.admin.all, 'exchange-rate'] as const,
+        banks: () => [...queryKeys.admin.all, 'banks'] as const,
+        /** The status catalog with the WhatsApp templates (Catálogos). */
+        orderStatuses: () => [...queryKeys.admin.all, 'order-statuses'] as const,
     },
 } as const

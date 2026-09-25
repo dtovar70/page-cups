@@ -1,0 +1,136 @@
+import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'react'
+import { ImageUp, X } from 'lucide-react'
+
+import {
+    FIELD_HINT_CLASS,
+    FIELD_LABEL_CLASS,
+    FIELD_MESSAGE_ERROR_CLASS,
+} from '@/components/ui/field.styles'
+import { OptionalMark } from '@/components/ui'
+import { cn } from '@/utils/cn'
+import { proofProblem } from '@/views/order/schema/payment.schema'
+
+export interface ProofDropzoneProps {
+    file: File | null
+    onChange: (file: File | null) => void
+    error?: string
+    disabled?: boolean
+}
+
+/** Screenshot picker: drag and drop or tap to choose, with a preview before sending. */
+export function ProofDropzone({ file, onChange, error, disabled = false }: ProofDropzoneProps) {
+    const inputId = useId()
+    const inputRef = useRef<HTMLInputElement>(null)
+    const [isOver, setIsOver] = useState(false)
+    const [localError, setLocalError] = useState<string | null>(null)
+    const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
+
+    // Frees the previous preview when the file changes or the form goes away.
+    useEffect(
+        () => () => {
+            if (preview) URL.revokeObjectURL(preview)
+        },
+        [preview],
+    )
+
+    const choose = (candidate: File | undefined) => {
+        if (!candidate) return
+        const problem = proofProblem(candidate)
+        setLocalError(problem)
+        if (!problem) onChange(candidate)
+    }
+
+    const onDrop = (event: DragEvent<HTMLLabelElement>) => {
+        event.preventDefault()
+        setIsOver(false)
+        if (!disabled) choose(event.dataTransfer.files[0])
+    }
+
+    const message = localError ?? error
+
+    return (
+        <div className="flex flex-col gap-1.5">
+            <span className={FIELD_LABEL_CLASS}>
+                Captura del pago
+                <OptionalMark />
+            </span>
+
+            {file && preview ? (
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-line bg-white p-3">
+                    <img
+                        src={preview}
+                        alt="Vista previa de la captura"
+                        className="size-20 shrink-0 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink">{file.name}</p>
+                        <p className="text-xs text-ink-soft">
+                            {(file.size / 1024 / 1024).toLocaleString('es-VE', {
+                                maximumFractionDigits: 1,
+                            })}{' '}
+                            MB
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => {
+                            onChange(null)
+                            if (inputRef.current) inputRef.current.value = ''
+                        }}
+                        aria-label="Quitar la captura"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-soft transition hover:bg-blush-100 hover:text-blush-700"
+                    >
+                        <X aria-hidden="true" className="size-4" />
+                    </button>
+                </div>
+            ) : (
+                <label
+                    htmlFor={inputId}
+                    onDragOver={(event) => {
+                        event.preventDefault()
+                        if (!disabled) setIsOver(true)
+                    }}
+                    onDragLeave={() => setIsOver(false)}
+                    onDrop={onDrop}
+                    className={cn(
+                        'flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 text-center transition',
+                        isOver
+                            ? 'border-blush-400 bg-blush-50'
+                            : 'border-line bg-white hover:border-blush-200',
+                        message && 'border-blush-500',
+                        disabled && 'cursor-not-allowed opacity-60',
+                    )}
+                >
+                    <ImageUp aria-hidden="true" className="size-7 text-blush-500" />
+                    <span className="text-sm font-semibold text-ink">
+                        Arrastra la captura aquí o toca para elegirla
+                    </span>
+                    <span className={FIELD_HINT_CLASS}>JPG, PNG o WEBP, hasta 5 MB</span>
+                </label>
+            )}
+
+            <input
+                ref={inputRef}
+                id={inputId}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={disabled}
+                aria-describedby={message ? `${inputId}-error` : undefined}
+                onChange={(event) => choose(event.target.files?.[0])}
+            />
+
+            {message ? (
+                <p id={`${inputId}-error`} role="alert" className={FIELD_MESSAGE_ERROR_CLASS}>
+                    {message}
+                </p>
+            ) : (
+                <p className={FIELD_HINT_CLASS}>
+                    Nos ayuda a confirmar tu pago más rápido. Solo el equipo de la tienda puede
+                    verla.
+                </p>
+            )}
+        </div>
+    )
+}

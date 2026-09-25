@@ -7,7 +7,7 @@ import { FieldGroup, FieldRow } from '@/views/admin/content/components/FieldGrou
 import { placeholderHint } from '@/views/admin/content/components/placeholders'
 import { SectionFormLayout } from '@/views/admin/content/components/SectionFormLayout'
 import { useSectionForm, type SectionFormProps } from '@/views/admin/content/hooks/useSectionForm'
-import { SECTION_FORMS } from '@/views/admin/content/schema/content.schema'
+import { CONTENT_LIMITS, SECTION_FORMS } from '@/views/admin/content/schema/content.schema'
 
 export function GeneralSection(props: SectionFormProps<'general'>) {
     const state = useSectionForm(SECTION_FORMS.general, props)
@@ -47,6 +47,7 @@ export function GeneralSection(props: SectionFormProps<'general'>) {
                     hint="Pie de página, junto al logo."
                     rows={3}
                     error={errors.description?.message}
+                    maxLength={CONTENT_LIMITS.text}
                     {...register('description')}
                 />
                 <Input
@@ -73,6 +74,7 @@ export function GeneralSection(props: SectionFormProps<'general'>) {
                     rows={3}
                     hint={placeholderHint(['envioGratis'], values)}
                     error={errors.metaDescription?.message}
+                    maxLength={CONTENT_LIMITS.metaDescription}
                     {...register('metaDescription')}
                 />
                 <div className="rounded-2xl border-2 border-dashed border-line bg-cream px-4 py-3">

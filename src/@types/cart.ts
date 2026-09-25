@@ -18,6 +18,10 @@ export interface CartItem {
     imageUrl?: string
     unitPrice: number
     quantity: number
+    /** Text, name or date to print ("" when none). Part of the line identity. */
+    personalization: string
+    /** The product is tagged `personalizable`, so the text can be edited from the cart. */
+    personalizable: boolean
 }
 
 export interface CartLineTotals {

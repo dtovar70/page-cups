@@ -20,8 +20,11 @@ export const CONTENT_LIMITS = {
     label: 40,
     title: 90,
     itemTitle: 60,
-    question: 120,
+    question: 100,
+    /** Subtitles and descriptions edited in a textarea. */
     text: 300,
+    /** Descriptions edited in a single-line field (every one-line field stops at 100). */
+    shortText: 100,
     paragraph: 1000,
     brandName: 60,
     tagline: 80,
@@ -30,10 +33,11 @@ export const CONTENT_LIMITS = {
     announcement: 80,
     searchPlaceholder: 60,
     statValue: 12,
-    email: 120,
+    email: 100,
     city: 80,
-    schedule: 120,
-    bankName: 60,
+    schedule: 100,
+    // Same limit as `banks.name`: the name is copied from the banks catalog.
+    bankName: 100,
     holderName: 80,
     instructions: 500,
 } as const
@@ -147,6 +151,8 @@ function pattern(regex: RegExp, message: string, max: number) {
 const handle = z
     .string()
     .trim()
+    // 30 characters plus an optional leading "@".
+    .max(31, 'Hasta 30 caracteres')
     .transform((value) => value.replace(/^@+/, ''))
     .pipe(
         z
@@ -215,7 +221,7 @@ export const homeSchema = z.object({
     featuredCta: text(L.label),
     stepsEyebrow: text(L.label),
     stepsTitle: title(),
-    stepsDescription: text(L.text, { optional: true }),
+    stepsDescription: text(L.shortText, { optional: true }),
     steps: list(
         z.object({ title: text(L.itemTitle), description: text(L.text) }),
         CONTENT_LIST_SIZES.steps,
@@ -229,7 +235,7 @@ export const homeSchema = z.object({
     ctaPrimary: text(L.label),
     ctaSecondary: text(L.label),
     newsletterTitle: text(L.title),
-    newsletterDescription: text(L.text),
+    newsletterDescription: text(L.shortText),
 })
 export type HomeFormValues = z.infer<typeof homeSchema>
 
@@ -252,7 +258,7 @@ export const aboutSchema = z.object({
     imageBadge: text(L.label),
     valuesEyebrow: text(L.label),
     valuesTitle: title(),
-    valuesDescription: text(L.text, { optional: true }),
+    valuesDescription: text(L.shortText, { optional: true }),
     values: list(
         z.object({
             icon: z.enum(ABOUT_VALUE_ICONS, { error: 'Elige un ícono' }),

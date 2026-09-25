@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Save, Trash2 } from 'lucide-react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
@@ -16,8 +16,8 @@ import {
     Textarea,
     type SelectOption,
 } from '@/components/ui'
-import { NOTICE_DISMISS_MS } from '@/constants/ui.constant'
 import { cn } from '@/utils/cn'
+import { formatCurrency } from '@/utils/formatCurrency'
 import { toColorInputValue } from '@/utils/color'
 import { slugify } from '@/utils/slugify'
 import { useAdminCategories } from '@/views/admin/hooks/useAdminCategories'
@@ -25,11 +25,11 @@ import {
     HEX_COLOR_PATTERN,
     MAX_HIGHLIGHTS,
     MAX_VARIANTS,
+    PRODUCT_DESCRIPTION_MAX_LENGTH,
     PRODUCT_TAG_LABELS,
     PRODUCT_TAGS,
     productFormSchema,
     toOptionalNumber,
-    toProductFormValues,
     toProductInput,
     type ProductFormValues,
 } from '@/views/admin/products/schema/product.schema'
@@ -49,7 +49,6 @@ export interface ProductFormProps {
 export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps) {
     const { data: categories } = useAdminCategories()
     const [serverError, setServerError] = useState<string | null>(null)
-    const [successMessage, setSuccessMessage] = useState<string | null>(null)
     /** Once the slug is typed by hand, the name stops rewriting it. */
     const [isSlugCustom, setIsSlugCustom] = useState(mode === 'edit')
 
@@ -57,7 +56,6 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
         control,
         register,
         handleSubmit,
-        reset,
         setError,
         setValue,
         formState: { errors, isSubmitting },
@@ -67,11 +65,21 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
     })
 
     const highlights = useFieldArray({ control, name: 'highlights' })
+    const isHighlightsFull = highlights.fields.length >= MAX_HIGHLIGHTS
+    const highlightsLimitId = useId()
     const variants = useFieldArray({ control, name: 'variants' })
-    const [category, colorHex, printText, variantValues] = useWatch({
+    const [category, colorHex, printText, variantValues, basePrice] = useWatch({
         control,
-        name: ['categorySlug', 'colorHex', 'printText', 'variants'],
+        name: ['categorySlug', 'colorHex', 'printText', 'variants', 'price'],
     })
+
+    /** What a variant ends up costing, shown under its price adjustment. */
+    const finalPriceHint = (index: number): string | undefined => {
+        const delta = Number(variantValues?.[index]?.priceDelta ?? 0)
+        const base = Number(basePrice)
+        if (!Number.isFinite(base) || !Number.isFinite(delta)) return undefined
+        return `Precio final: ${formatCurrency(base + delta)}`
+    }
 
     const categoryOptions: SelectOption[] = (categories ?? []).map((item) => ({
         value: item.slug,
@@ -81,14 +89,11 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
 
     const submit = handleSubmit(async (values) => {
         setServerError(null)
-        setSuccessMessage(null)
 
+        // On success the page navigates away (create: to the edit page for photos; edit:
+        // back to the list, which shows the notice), so there is nothing to reset here.
         try {
-            const product = await onSubmit(toProductInput(values, mode))
-            if (mode === 'edit') {
-                reset(toProductFormValues(product))
-                setSuccessMessage('Cambios guardados. La tienda ya muestra la versión nueva.')
-            }
+            await onSubmit(toProductInput(values, mode))
         } catch (error) {
             setServerError(applyServerErrors(error, setError))
         }
@@ -150,6 +155,7 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
                         optional
                         rows={5}
                         error={errors.description?.message}
+                        maxLength={PRODUCT_DESCRIPTION_MAX_LENGTH}
                         {...register('description')}
                     />
                 </Card>
@@ -233,11 +239,24 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
 
                 <Card className="space-y-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h2 className={sectionTitleClass}>Detalles destacados</h2>
+                        <div>
+                            <h2 className={sectionTitleClass}>Detalles destacados</h2>
+                            <p
+                                id={highlightsLimitId}
+                                className={cn(
+                                    'text-sm text-ink-soft tabular-nums',
+                                    isHighlightsFull && 'font-semibold text-blush-700',
+                                )}
+                            >
+                                {highlights.fields.length}/{MAX_HIGHLIGHTS} · Máximo{' '}
+                                {MAX_HIGHLIGHTS} detalles
+                            </p>
+                        </div>
                         <Button
                             variant="secondary"
                             size="sm"
-                            disabled={highlights.fields.length >= MAX_HIGHLIGHTS}
+                            disabled={isHighlightsFull}
+                            aria-describedby={highlightsLimitId}
                             onClick={() => highlights.append({ value: '' })}
                             leadingIcon={<Plus aria-hidden="true" className="size-4" />}
                         >
@@ -334,6 +353,7 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
                                         <div className="col-span-2 sm:col-span-1">
                                             <Input
                                                 label="Ajuste de precio"
+                                                hint={finalPriceHint(index)}
                                                 type="number"
                                                 inputMode="decimal"
                                                 step="0.01"
@@ -472,16 +492,6 @@ export function ProductForm({ mode, initialValues, onSubmit }: ProductFormProps)
 
                 <div className="space-y-3">
                     {serverError ? <Alert>{serverError}</Alert> : null}
-                    {successMessage ? (
-                        <Alert
-                            key={successMessage}
-                            tone="success"
-                            autoDismissMs={NOTICE_DISMISS_MS}
-                            onDismiss={() => setSuccessMessage(null)}
-                        >
-                            {successMessage}
-                        </Alert>
-                    ) : null}
                     <Button
                         type="submit"
                         fullWidth
